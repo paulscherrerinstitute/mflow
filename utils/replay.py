@@ -1,5 +1,5 @@
 import zmq
-import stream
+import mflow
 
 def main():
 

@@ -1,5 +1,5 @@
 import os
-import stream
+import mflow
 
 counter = 0
 folder = None
@@ -38,7 +38,7 @@ def main():
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    dstream = stream.connect(address)
+    dstream = mflow.connect(address)
 
     while True:
         dstream.receive(handler=dump)

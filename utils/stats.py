@@ -1,5 +1,5 @@
 import os
-import stream
+import mflow
 
 counter = 0
 folder = None
@@ -22,7 +22,7 @@ def main():
     arguments = parser.parse_args()
 
     address = arguments.source
-    dstream = stream.connect(address)
+    dstream = mflow.connect(address)
 
     previous_time = 0
     while True:
