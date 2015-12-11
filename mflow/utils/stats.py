@@ -1,5 +1,4 @@
-import os
-import mflow
+from mflow import mflow
 
 counter = 0
 folder = None
