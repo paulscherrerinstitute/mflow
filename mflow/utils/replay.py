@@ -1,55 +1,43 @@
+import os
+import mflow
 import zmq
+from os import listdir
+from os.path import isfile, join
+import argparse
 
 
 def main():
 
-    dump_folder = ''
-    mode = zmq.PUSH
-    address = "tcp://*:9999"
-    conn_type = "bind"
+    parser = argparse.ArgumentParser(description='Stream replay utility')
 
-    import re
+    parser.add_argument('folder', type=str, help='Destination folder')
+    parser.add_argument('-a', '--address', default="tcp://*:9999", type=str,
+                        help='Address - format "tcp://<address>:<port>"')
 
-    sender = Sender(mode=mode)
-    sender.connect(address=address, conn_type=conn_type)
+    arguments = parser.parse_args()
 
-    socket = sender.socket
+    folder = arguments.folder
+    address = arguments.address
 
-    from os import listdir
-    from os.path import isfile, join
-    files = [raw_file for raw_file in listdir(dump_folder) if (isfile(join(dump_folder, raw_file)) and (raw_file.endswith('.raw') or raw_file.endswith('.json')))]
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
-    files.sort(key=natural_key)
-    # for raw_file in files:
+    stream = mflow.connect(address, conn_type="bind", mode=zmq.PUSH)
+
+    files = listdir(folder)
+
     for index, raw_file in enumerate(files):
-        with open(join(dump_folder, raw_file), mode='rb') as file_handle:
+        filename = join(folder, raw_file)
+        if not (raw_file.endswith('.raw') and isfile(filename)):
+            continue
 
-            # Check whether message number increases in the next file
-            # If yes, don't send flag SNDMORE
-
+        with open(filename, mode='rb') as file_handle:
             send_more = False
             if index+1 < len(files):  # Ensure that we don't run out of bounds
-                numbers = re.findall(r'\d+', raw_file)
-                numbers_next = re.findall(r'\d+', files[index+1])
+                send_more = raw_file.split('_')[0] == files[index+1].split('_')[0]
 
-                if numbers[0] == numbers_next[0]:
-                    send_more = True
-
-            content = file_handle.read()
-
-            if send_more:
-                socket.send(content, zmq.SNDMORE)
-                logger.info(raw_file+' > send more')
-            else:
-                socket.send(content)
-                logger.info(raw_file+' > send')
-
-    # Wait 5 more seconds to give the client a chance to retrieve all messages from the
-    # sender side queue
-    import time
-    time.sleep(2)
-
-    sender.disconnect()
+            print('Sending %s [%s]' % (raw_file, send_more))
+            stream.send(file_handle.read(), send_more=send_more)
 
 
 if __name__ == '__main__':

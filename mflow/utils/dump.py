@@ -1,6 +1,6 @@
 import os
-
-from mflow import mflow
+import mflow
+import signal
 
 counter = 0
 folder = None
@@ -17,6 +17,11 @@ def dump(receiver):
         with open('{}/{}_{}.raw'.format(folder, '%06d' % counter, '%03d' % cnt), 'wb') as f:
             f.write(receiver.next())
         cnt += 1
+
+
+# def stop(*argv):
+#     global receive_more
+#     receive_more = False
 
 
 def main():
@@ -39,10 +44,21 @@ def main():
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    dstream = mflow.connect(address)
+    stream = mflow.connect(address)
 
-    while True:
-        dstream.receive(handler=dump)
+    # Signal handling
+    global receive_more
+    receive_more = True
+
+    def stop(*arguments):
+        global receive_more
+        receive_more = False
+        signal.siginterrupt()
+
+    signal.signal(signal.SIGINT, stop)
+
+    while receive_more:
+        stream.receive(handler=dump)
         counter += 1
 
 

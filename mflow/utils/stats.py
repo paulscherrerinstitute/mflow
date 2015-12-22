@@ -1,4 +1,5 @@
-from mflow import mflow
+import mflow
+import signal
 
 counter = 0
 folder = None
@@ -21,11 +22,23 @@ def main():
     arguments = parser.parse_args()
 
     address = arguments.source
-    dstream = mflow.connect(address)
+    stream = mflow.connect(address)
 
     previous_time = 0
-    while True:
-        message = dstream.receive(handler=dump)
+
+    # Signal handling
+    global more
+    more = True
+
+    def stop(*arguments):
+        global more
+        more = False
+        signal.siginterrupt()
+
+    signal.signal(signal.SIGINT, stop)
+
+    while more:
+        message = stream.receive(handler=dump)
 
         now = time.time()
 
