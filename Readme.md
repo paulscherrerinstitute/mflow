@@ -34,6 +34,9 @@ message = stream.receive(self, handler=None)
 The returned `message` object contains the current receiving  statistics in `message.statistics` and the actual 
 message data in `message.data`.
 
+If there should be no dynamic resolution of the message handler an explicit handler can be specified to handle the 
+incoming message. 
+
 
 Disconnecting stream:
 
@@ -42,8 +45,14 @@ stream.disconnect()
 ```
 
 
+Sending message (ensure that you specified the correct mode!):
 
-## Example
+```python
+stream.send('message content', send_more=True)
+```
+
+
+Example:
 
 ```python
 import mflow
@@ -55,3 +64,12 @@ print(message.statistics.messages_received)
 
 stream.disconnect()
 ```
+
+## Advanced
+
+Manually register more handlers that are not provided by this package (after creating the stream)
+
+```python
+stream.handlers['id'] = myhandler
+```
+
