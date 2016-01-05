@@ -73,3 +73,10 @@ Manually register more handlers that are not provided by this package (after cre
 stream.handlers['id'] = myhandler
 ```
 
+# Development
+
+Upload package to pypi.python.org
+
+```bash
+python setup.py sdist upload
+```
