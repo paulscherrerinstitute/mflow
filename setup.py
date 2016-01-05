@@ -6,5 +6,6 @@ setup(name='mflow',
       version='0.0.1',
       description='Python Library for ZMQ data streaming',
       author='Paul Scherrer Institute',
+      license='GNU GPLv3',
       packages=['mflow', 'mflow.utils', 'mflow.handlers'],
      )
