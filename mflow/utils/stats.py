@@ -43,6 +43,10 @@ def main():
         now = time.time()
 
         # Print every second
+        # TODO Need to be done differently as at the end of a stream the last stats do not show up
+        # Use threading.Timer(1, foo).start()
+        # (http://stackoverflow.com/questions/8600161/executing-periodic-actions-in-python)
+        # As printing out every time a message is received will slow down the receive process
         if (now - previous_time) > 0.1:
             print(chr(27) + "[2J")
             print("_"*60)
