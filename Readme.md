@@ -4,7 +4,7 @@ received/send as well as an easy way to handle different types of messages withi
  
 
 # Installation
-The mflow package is available on https://pypi.python.org and can be installed via pip
+The mflow package is available on [https://pypi.python.org](https://pypi.python.org/pypi/mflow) and can be installed via pip
 
 ```bash
 pip install mflow
