@@ -5,6 +5,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+CONNECT = 'connect'
+BIND = 'bind'
+
+PUB = zmq.PUB
+SUB = zmq.SUB
+PUSH = zmq.PUSH
+PULL = zmq.PULL
+
+
 class Stream(object):
 
     def __init__(self):
@@ -16,7 +25,7 @@ class Stream(object):
         self.receiver = None
         self.handlers = {}
 
-    def connect(self, address, conn_type="connect", mode=zmq.PULL, receive_timeout=None, queue_size=100):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100):
         """
         :param address:         Address to connect to
         :param conn_type:       Connection type - connect or bind to socket

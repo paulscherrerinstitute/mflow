@@ -1,7 +1,7 @@
 # Overview
-__mflow__ facilitates the handling of ZMQ data streams. It provides basic accounting and statistics on messages 
+__mflow__ facilitates the handling of ZMQ data streams. It provides basic accounting and statistics on messages
 received/send as well as an easy way to handle different types of messages within a stream.
- 
+
 
 # Installation
 The mflow package is available on [https://pypi.python.org](https://pypi.python.org/pypi/mflow) and can be installed via pip
@@ -22,7 +22,7 @@ Right now mflow comes with following message type support:
 Connect/Create stream:
 
 ```python
-stream = mflow.connect(address, conn_type="connect", mode=zmq.PULL, receive_timeout=None, queue_size=100)
+stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, receive_timeout=None, queue_size=100)
 ```
 
 Receive a message:
@@ -31,11 +31,11 @@ Receive a message:
 message = stream.receive(self, handler=None)
 ```
 
-The returned `message` object contains the current receiving  statistics in `message.statistics` and the actual 
+The returned `message` object contains the current receiving  statistics in `message.statistics` and the actual
 message data in `message.data`.
 
-If there should be no dynamic resolution of the message handler an explicit handler can be specified to handle the 
-incoming message. 
+If there should be no dynamic resolution of the message handler an explicit handler can be specified to handle the
+incoming message.
 
 
 Disconnecting stream:
