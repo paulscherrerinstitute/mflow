@@ -19,10 +19,10 @@ pip install mflow
 
 ## Anaconda
 
-The mflow package is available on [anaconda.org](https://anaconda.org/ebner/mflow) and can be installed as follows:
+The mflow package is available on [anaconda.org](https://anaconda.org/paulscherrerinstitute/mflow) and can be installed as follows:
 
 ```bash
-conda install -c https://conda.anaconda.org/ebner mflow
+conda install -c https://conda.anaconda.org/paulscherrerinstitute mflow
 ```
 
 # Usage
