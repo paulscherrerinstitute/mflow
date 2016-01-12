@@ -2,20 +2,28 @@
 __mflow__ facilitates the handling of ZMQ data streams. It provides basic accounting and statistics on messages
 received/send as well as an easy way to handle different types of messages within a stream.
 
-
-# Installation
-The mflow package is available on [https://pypi.python.org](https://pypi.python.org/pypi/mflow) and can be installed via pip
-
-```bash
-pip install mflow
-```
-
 Right now mflow comes with following message type support:
 * array-1.0
 * bsr_m-1.0
 * dheader-1.0 (Dectris Eiger)
 * dimage-1.0 (Dectris Eiger)
 * dseries_end-1.0 (Dectris Eiger)
+
+# Installation
+## Pip
+The mflow package is available on [https://pypi.python.org](https://pypi.python.org/pypi/mflow) and can be installed via pip
+
+```bash
+pip install mflow
+```
+
+## Anaconda
+
+The mflow package is available on [anaconda.org](https://anaconda.org/ebner/mflow) and can be installed as follows:
+
+```bash
+conda install -c https://conda.anaconda.org/ebner mflow
+```
 
 # Usage
 
@@ -75,8 +83,22 @@ stream.handlers['id'] = myhandler
 
 # Development
 
+## PyPi
 Upload package to pypi.python.org
 
 ```bash
 python setup.py sdist upload
+```
+
+## Anaconda
+To build the anaconda package do:
+
+```bash
+conda build conda_recipe
+```
+
+Afterwards the package can be uploaded to anaconda.org via
+
+```bash
+anaconda upload <path_to.tar.bz2_file>
 ```
