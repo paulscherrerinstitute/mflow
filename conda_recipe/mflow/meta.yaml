@@ -1,0 +1,23 @@
+package:
+    name: mflow
+    version: 0.0.3
+source:
+    path: ../..
+
+requirements:
+    build:
+        - python
+        - setuptools
+    run:
+        - python
+        - pyzmq
+
+build:
+  entry_points:
+    - m_dump = mflow.utils.dump:main
+    - m_replay = mflow.utils.replay:main
+    - m_stats = mflow.utils.stats:main
+
+about:
+    home: https://github.com/datastreaming/mflow
+    summary: "mflow library."
