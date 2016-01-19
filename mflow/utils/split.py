@@ -4,8 +4,8 @@ import signal
 
 class Splitter:
 
-    def __init__(self, streams):
-        self.streams = streams
+    def __init__(self, output_streams):
+        self.output_streams = output_streams
 
     def receive(self, receiver):
 
@@ -13,7 +13,7 @@ class Splitter:
             message = receiver.next()
             more = receiver.has_more()
 
-            for stream in self.streams:
+            for stream in self.output_streams:
                 stream.send(message, send_more=more)
 
             if not more:
@@ -34,13 +34,13 @@ def main():
     streams_to_generate = arguments.streams
     address = arguments.source
 
-    streams = []
+    output_streams = []
     for new_stream in streams_to_generate:
-        streams.append(mflow.connect(new_stream, conn_type=mflow.BIND, mode=mflow.PUSH))
+        output_streams.append(mflow.connect(new_stream, conn_type=mflow.BIND, mode=mflow.PUSH))
 
-    splitter = Splitter(streams)
+    splitter = Splitter(output_streams)
 
-    stream = mflow.connect(address)
+    input_stream = mflow.connect(address)
 
     # Signal handling
     global receive_more
@@ -54,7 +54,7 @@ def main():
     signal.signal(signal.SIGINT, stop)
 
     while receive_more:
-        stream.receive(handler=splitter.receive)
+        input_stream.receive(handler=splitter.receive)
 
 
 if __name__ == '__main__':
