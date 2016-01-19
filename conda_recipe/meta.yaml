@@ -17,6 +17,7 @@ build:
     - m_dump = mflow.utils.dump:main
     - m_replay = mflow.utils.replay:main
     - m_stats = mflow.utils.stats:main
+    - m_split = mflow.utils.split:main
 
 about:
     home: https://github.com/datastreaming/mflow
