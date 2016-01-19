@@ -24,7 +24,7 @@ def main():
 
     stream = mflow.connect(address, conn_type="bind", mode=zmq.PUSH)
 
-    files = listdir(folder)
+    files = sorted(listdir(folder))
 
     for index, raw_file in enumerate(files):
         filename = join(folder, raw_file)

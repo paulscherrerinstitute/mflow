@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='mflow',
-      version='0.0.5',
+      version='0.0.6',
       description='Utility library for ZMQ data streaming',
       author='Paul Scherrer Institute',
       license='GNU GPLv3',
