@@ -12,7 +12,7 @@ def main():
 
     parser.add_argument('folder', type=str, help='Destination folder')
     parser.add_argument('-a', '--address', default="tcp://*:9999", type=str,
-                        help='Address - format "tcp://<address>:<port>"')
+                        help='Address - format "tcp://<address>:<port>" (default: "tcp://*:9999")')
 
     arguments = parser.parse_args()
 
