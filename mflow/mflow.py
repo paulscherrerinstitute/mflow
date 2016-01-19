@@ -171,7 +171,7 @@ class DefaultHandlers(dict):
         try:
             if key not in self.blacklist:
                 logger.info('Handler missing - try to load handler for - '+key)
-                module = __import__("handlers." + key.replace('.', '_').replace('-', '_'), fromlist=".")
+                module = __import__("mflow.handlers." + key.replace('.', '_').replace('-', '_'), fromlist=".")
                 handler = module.Handler().receive
                 self[key] = handler
                 logger.info('Handler loaded')
