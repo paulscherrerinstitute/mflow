@@ -1,6 +1,5 @@
 import mflow
 import signal
-import zmq
 
 
 class Splitter:
@@ -37,7 +36,7 @@ def main():
 
     streams = []
     for new_stream in streams_to_generate:
-        streams.append(mflow.connect(new_stream, conn_type="bind", mode=zmq.PUSH))
+        streams.append(mflow.connect(new_stream, conn_type=mflow.BIND, mode=mflow.PUSH))
 
     splitter = Splitter(streams)
 
