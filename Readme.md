@@ -60,6 +60,36 @@ stream.send('message content', send_more=True)
 ```
 
 
+Register multiple handlers:
+
+```python
+def receive_function(receiver):
+
+      header = receiver.next(as_json=True)
+      return_value = {}
+      data = []
+
+      # Receiving data
+      while receiver.has_more():
+          raw_data = receiver.next()
+          if raw_data:
+              data.append(raw_data)
+          else:
+              data.append(None)
+
+      return_value['header'] = header
+      return_value['data'] = data
+      return return_value
+
+
+my_handlers = dict()
+my_handlers['my_htype-1.0'] = receive_function
+# ... register more handlers ...
+
+# set handlers
+stream.handlers = my_handlers
+```
+
 Example:
 
 ```python
