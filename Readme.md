@@ -60,7 +60,7 @@ stream.send('message content', send_more=True)
 ```
 
 
-Register multiple handlers:
+Register multiple custom (htype) handlers:
 
 ```python
 def receive_function(receiver):
@@ -90,6 +90,9 @@ my_handlers['my_htype-1.0'] = receive_function
 stream.handlers = my_handlers
 ```
 
+__Note:__ Handlers need to be registered before calling `receive()`.
+
+ß
 Example:
 
 ```python
