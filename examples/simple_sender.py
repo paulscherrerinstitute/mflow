@@ -19,21 +19,13 @@ address = "tcp://127.0.0.1:40000"
 
 stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1000)
 
-
 data = np.ones(10)
-md = dict(
-    htype="array-1.0",
-    type=str(data.dtype),
-    shape=data.shape,
-)
-
-print md
+i = 0
 while True:
     try:
-        stream.send(json.dumps(md), send_more=True)
-        stream.send(data, send_more=False)
+        stream.send_message("array-1.0", data, frame=i)
+        i += 1
     except KeyboardInterrupt:
         break
 
 stream.disconnect()
-
