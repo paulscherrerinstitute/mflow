@@ -1,9 +1,14 @@
 import zmq
 import json
 import logging
+import sys
 
+# setting up logging
 logger = logging.getLogger(__name__)
-
+ch = logging.StreamHandler()
+formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 CONNECT = 'connect'
 BIND = 'bind'
@@ -27,7 +32,7 @@ class Stream(object):
 
     def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100):
         """
-        :param address:         Address to connect to
+        :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
         :param mode:            Message delivery mode PUSH/PULL PUB/SUB
         :param receive_timeout: Receive timeout in milliseconds (-1 = infinite)
@@ -48,7 +53,7 @@ class Stream(object):
             else:
                 self.socket.bind(address)
         except:
-            logger.error("Unable to connect to server. Hint: check IP address")
+            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000" % address)
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
@@ -70,6 +75,7 @@ class Stream(object):
             self.socket.close()
             logger.info("Disconnected")
         except:
+            logger.debug(sys.exc_info()[1])
             logger.info("Unable to disconnect properly")
 
     def receive(self, handler=None):
@@ -85,16 +91,22 @@ class Stream(object):
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
             except:
-                logger.warning('Unable to read header')
+                logger.debug(sys.exc_info()[1])
+                logger.warning('Unable to read header - skipping')
+                # Clear remaining sub-messages if exist
+                self.receiver.flush()
+                return Message(self.receiver.statistics, data)
 
             try:
                 handler = self.handlers[htype]
             except:
-                logger.warning('htype - '+htype+' -  not supported')
+                logger.debug(sys.exc_info()[1])
+                logger.warning('htype - ' + htype[0] + ' -  not supported')
 
         try:
             data = handler(self.receiver)
         except:
+            logger.debug(sys.exc_info()[1])
             logger.warning('Unable to decode message - skipping')
 
         # Clear remaining sub-messages if exist
