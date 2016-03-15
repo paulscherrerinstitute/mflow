@@ -25,4 +25,4 @@ class Handler:
 
 
 def get_image(raw_data, dtype, shape):
-    return numpy.fromstring(raw_data, dtype=dtype, shape=shape)
+    return numpy.fromstring(raw_data, dtype=dtype).reshape(shape)
