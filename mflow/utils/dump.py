@@ -10,14 +10,20 @@ skip_from_message = None
 def dump(receiver):
 
     cnt = 0
-    with open('{}/{}_{}.raw'.format(folder, '%06d' % counter, '%03d' % cnt), 'wb') as f:
-        f.write(receiver.next())
+    message = receiver.next()
     cnt += 1
 
+    if not skip_from_message or cnt < skip_from_message:
+        with open('{}/{}_{}.raw'.format(folder, '%06d' % counter, '%03d' % (cnt-1)), 'wb') as f:
+            f.write(message)
+
     while receiver.has_more():
-        with open('{}/{}_{}.raw'.format(folder, '%06d' % counter, '%03d' % cnt), 'wb') as f:
-            f.write(receiver.next())
+        message = receiver.next()
         cnt += 1
+
+        if not skip_from_message or cnt < skip_from_message:
+            with open('{}/{}_{}.raw'.format(folder, '%06d' % counter, '%03d' % (cnt-1)), 'wb') as f:
+                f.write(message)
 
 
 def dump_screen(receiver):
