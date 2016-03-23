@@ -17,7 +17,7 @@ def main():
 
     stream = mflow.connect(address, conn_type="bind", mode=mflow.PUSH)
 
-    size_bytes = size*1024.0*1024.0
+    size_bytes = int(size*1024.0*1024.0)
     data = bytearray(size_bytes)
     # message_size_mb = (size*8)/1024.0/1024.0
 
