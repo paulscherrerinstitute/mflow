@@ -114,6 +114,84 @@ Manually register more handlers that are not provided by this package (after cre
 stream.handlers['id'] = myhandler
 ```
 
+# Command Line
+The Anaconda mflow package comes with several command line tools useful for testing streaming.
+
+## m_stats
+
+```bash
+usage: m_stats [-h] source
+
+Stream statistic utility
+
+positional arguments:
+  source      Source address - format "tcp://<address>:<port>"
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+## m_generate
+
+```bash
+usage: m_generate [-h] [-a ADDRESS] [-s SIZE]
+
+Stream generation utility
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a ADDRESS, --address ADDRESS
+                        Address - format "tcp://<address>:<port>"
+  -s SIZE, --size SIZE  Size of data to send (MB)"
+```
+
+## m_dump
+
+```bash
+usage: m_dump [-h] source folder
+
+Stream dump utility
+
+positional arguments:
+  source      Source address - format "tcp://<address>:<port>"
+  folder      Destination folder
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+## m_replay
+
+```bash
+usage: m_replay [-h] [-a ADDRESS] folder
+
+Stream replay utility
+
+positional arguments:
+  folder                Destination folder
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a ADDRESS, --address ADDRESS
+                        Address - format "tcp://<address>:<port>" (default:
+                        "tcp://*:9999")
+```
+
+## m_split
+
+```bash
+usage: m_split [-h] source streams [streams ...]
+
+Stream dump utility
+
+positional arguments:
+  source      Source address - format "tcp://<address>:<port>"
+  streams     Streams to generate - "tcp://<address>:<port>"
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
 # Development
 
 ## PyPi
