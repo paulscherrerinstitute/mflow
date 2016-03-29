@@ -118,6 +118,7 @@ stream.handlers['id'] = myhandler
 The Anaconda mflow package comes with several command line tools useful for testing streaming.
 
 ## m_stats
+Show statistics for incoming streams. Useful for measure the maximum throughput for a given stream on a link.
 
 ```bash
 usage: m_stats [-h] source
@@ -132,6 +133,7 @@ optional arguments:
 ```
 
 ## m_generate
+Generate a random stream. This is useful, together with `m_stats` to measure possible throughput.
 
 ```bash
 usage: m_generate [-h] [-a ADDRESS] [-s SIZE]
@@ -146,6 +148,7 @@ optional arguments:
 ```
 
 ## m_dump
+Dump an incoming stream to disk. `m_dump` saves all sub-messages into individual files.
 
 ```bash
 usage: m_dump [-h] source folder
@@ -161,6 +164,7 @@ optional arguments:
 ```
 
 ## m_replay
+Replay a recorded (via m_dump) stream.
 
 ```bash
 usage: m_replay [-h] [-a ADDRESS] folder
@@ -178,6 +182,7 @@ optional arguments:
 ```
 
 ## m_split
+Split an incoming stream into multiple streams. Currently only the PUSH/PULL scheme is supported.
 
 ```bash
 usage: m_split [-h] source streams [streams ...]
