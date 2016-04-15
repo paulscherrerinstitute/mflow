@@ -148,19 +148,22 @@ optional arguments:
 ```
 
 ## m_dump
-Dump an incoming stream to disk. `m_dump` saves all sub-messages into individual files.
+Dump an incoming stream to disk or screen. While dumping into files, `m_dump` saves all sub-messages into individual files.
+The option `-s` can be used if you are only interested in the first n submessages (e.g. header)
 
 ```bash
-usage: m_dump [-h] source folder
+usage: m_dump [-h] [-s SKIP] source [folder]
 
 Stream dump utility
 
 positional arguments:
-  source      Source address - format "tcp://<address>:<port>"
-  folder      Destination folder
+  source                Source address - format "tcp://<address>:<port>"
+  folder                Destination folder
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -s SKIP, --skip SKIP  Skip sub-messages starting from this number (including
+                        number)
 ```
 
 ## m_replay
