@@ -149,30 +149,39 @@ class ReceiveHandler:
         self.statistics = Statistics()
         self.raw_header = None
 
-    def header(self):
-        self.raw_header = self.socket.recv()
+    def header(self, block=True):
+        flags = 0 if block else zmq.NOBLOCK
+        self.raw_header = self.socket.recv(flags=flags)
         return json.loads(self.raw_header.decode("utf-8"))
 
     def has_more(self):
         return self.socket.getsockopt(zmq.RCVMORE)
 
-    def next(self, as_json=False):
-        if self.raw_header:
-            raw = self.raw_header
-            self.raw_header = None
-        else:
-            raw = self.socket.recv()
+    def next(self, as_json=False, block=True):
+        try:
+            if self.raw_header:
+                raw = self.raw_header
+                self.raw_header = None
+            else:
+                flags = 0 if block else zmq.NOBLOCK
+                raw = self.socket.recv(flags=flags)
 
-        self.statistics.bytes_received += len(raw)
-        if as_json:
-            return json.loads(raw.decode("utf-8"))
-        return raw
+            self.statistics.bytes_received += len(raw)
+            if as_json:
+                return json.loads(raw.decode("utf-8"))
+            return raw
+        except zmq.ZMQError:
+            return None
 
-    def flush(self):
+    def flush(self, block=True):
+        flags = 0 if block else zmq.NOBLOCK
         # Clear remaining sub-messages
         while self.has_more():
-            self.socket.recv()
-            logger.info('Skipping sub-message')
+            try:
+                self.socket.recv(flags=flags)
+                logger.info('Skipping sub-message')
+            except zmq.ZMQError:
+                pass
 
         # Update statistics
         self.statistics.total_bytes_received += self.statistics.bytes_received
