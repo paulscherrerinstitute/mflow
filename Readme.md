@@ -207,7 +207,8 @@ The -c / --config option accepts a configuration file as follows:
 {
     "source": {
         "address": "tcp://localhost:7777",
-        "mode": "PULL"
+        "mode": "PULL",
+        "queue_size": 10
     },
     "streams": [
         {
@@ -220,6 +221,8 @@ The -c / --config option accepts a configuration file as follows:
 
 If an address is specified in the format of 'tcp://*:<port>' the splitter will do a bind on that address and opens the specified port. If there is a hostname given, the splitter tries to connect to the address.
 Supported modes are PULL/SUB for the source and PUSH/PUB for outgoing streams.
+
+The default value for mode (if omitted) is PULL for the source and PUSH for output streams. The default queue size (if omitted) is 100 for both source and output streams.
 
 # Development
 

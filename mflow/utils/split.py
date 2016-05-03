@@ -74,7 +74,8 @@ def load_configuration(filename):
     {
         "source": {
             "address": "tcp://localhost:7777",
-            "mode": "PULL"
+            "mode": "PULL",
+            "queue_size": 100
         },
         "streams": [
             {
@@ -94,10 +95,12 @@ def load_configuration(filename):
 
     # Construct stream source
     address = configuration['source']['address']
+
     if re.match('tcp://\\*:.*', address):
         connection_type = mflow.BIND
     else:
         connection_type = mflow.CONNECT
+
     mode = mflow.PULL
     if 'mode' in configuration['source']:
         if configuration['source']['mode'].lower() == 'pull':
@@ -106,13 +109,18 @@ def load_configuration(filename):
             mode = mflow.SUB
         else:
             raise Exception('Unsupported mode [%s] for source [%s]' % (configuration['source']['mode'], configuration['source']))
-    print(connection_type)
-    input_stream = mflow.connect(address, mode=mode, conn_type=connection_type)
+
+    queue_size = 100
+    if 'queue_size' in configuration['source']:
+        queue_size = configuration['source']['queue_size']
+
+    input_stream = mflow.connect(address, mode=mode, conn_type=connection_type, queue_size=queue_size)
 
     # Construct output streams
     output_streams = []
     for stream in configuration['streams']:
         address = stream['address']
+
         if re.match('tcp://\\*:.*', address):
             connection_type = mflow.BIND
         else:
@@ -127,7 +135,11 @@ def load_configuration(filename):
             else:
                 raise Exception('Unsupported mode [%s] for stream [%s]' % (stream['mode'], stream))
 
-        output_streams.append(mflow.connect(address, conn_type=connection_type, mode=mode))
+        queue_size = 100
+        if 'queue_size' in stream:
+            queue_size = stream['queue_size']
+
+        output_streams.append(mflow.connect(address, conn_type=connection_type, mode=mode, queue_size=queue_size))
 
     return input_stream, Splitter(output_streams)
 
