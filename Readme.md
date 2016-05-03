@@ -188,17 +188,38 @@ optional arguments:
 Split an incoming stream into multiple streams. Currently only the PUSH/PULL scheme is supported.
 
 ```bash
-usage: m_split [-h] source streams [streams ...]
+usage: m_split [-h] [-c CONFIG] [source] [streams [streams ...]]
 
 Stream dump utility
 
 positional arguments:
-  source      Source address - format "tcp://<address>:<port>"
-  streams     Streams to generate - "tcp://<address>:<port>"
+  source                Source address - format "tcp://<address>:<port>"
+  streams               Streams to generate - "tcp://<address>:<port>"
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Configuration file
 ```
+
+The -c / --config option accepts a configuration file as follows:
+```json
+{
+    "source": {
+        "address": "tcp://localhost:7777",
+        "mode": "PULL"
+    },
+    "streams": [
+        {
+            "address": "tcp://*:8888",
+            "mode": "PUSH"
+        }
+    ]
+}
+```
+
+If an address is specified in the format of 'tcp://*:<port>' the splitter will do a bind on that address and opens the specified port. If there is a hostname given, the splitter tries to connect to the address.
+Supported modes are PULL/SUB for the source and PUSH/PUB for outgoing streams.
 
 # Development
 
