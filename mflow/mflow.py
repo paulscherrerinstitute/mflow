@@ -79,10 +79,11 @@ class Stream(object):
             logger.debug(sys.exc_info()[1])
             logger.info("Unable to disconnect properly")
 
-    def receive(self, handler=None):
+    def receive(self, handler=None, block=True):
         """
         :param handler:     Reference to a specific message handler function to use for interpreting
                             the message to be received
+        :param block:       Blocking receive call
         :return:            Map holding the data, timestamp, data and main header
         """
 
@@ -105,6 +106,9 @@ class Stream(object):
                 logger.warning('htype - ' + htype + ' -  not supported')
 
         try:
+            # Set blocking flag in receiver
+            self.receiver.block = block
+
             data = handler(self.receiver)
         except:
             logger.debug(sys.exc_info()[1])
@@ -148,22 +152,23 @@ class ReceiveHandler:
         # Basic statistics
         self.statistics = Statistics()
         self.raw_header = None
+        self.block = True
 
-    def header(self, block=True):
-        flags = 0 if block else zmq.NOBLOCK
+    def header(self):
+        flags = 0 if self.block else zmq.NOBLOCK
         self.raw_header = self.socket.recv(flags=flags)
         return json.loads(self.raw_header.decode("utf-8"))
 
     def has_more(self):
         return self.socket.getsockopt(zmq.RCVMORE)
 
-    def next(self, as_json=False, block=True):
+    def next(self, as_json=False):
         try:
             if self.raw_header:
                 raw = self.raw_header
                 self.raw_header = None
             else:
-                flags = 0 if block else zmq.NOBLOCK
+                flags = 0 if self.block else zmq.NOBLOCK
                 raw = self.socket.recv(flags=flags)
 
             self.statistics.bytes_received += len(raw)
@@ -173,8 +178,8 @@ class ReceiveHandler:
         except zmq.ZMQError:
             return None
 
-    def flush(self, block=True):
-        flags = 0 if block else zmq.NOBLOCK
+    def flush(self):
+        flags = 0 if self.block else zmq.NOBLOCK
         # Clear remaining sub-messages
         while self.has_more():
             try:
