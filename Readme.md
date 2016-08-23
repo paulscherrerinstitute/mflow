@@ -92,7 +92,6 @@ stream.handlers = my_handlers
 
 __Note:__ Handlers need to be registered before calling `receive()`.
 
-ß
 Example:
 
 ```python
@@ -108,10 +107,27 @@ stream.disconnect()
 
 ## Advanced
 
+### Register Additional Handlers
 Manually register more handlers that are not provided by this package (after creating the stream)
 
 ```python
 stream.handlers['id'] = myhandler
+```
+
+### Merge Streams
+mflow provides a simple class to merge two ore more streams. The default implementation merges the messages round robin, i.e. you will receive message 1 from stream 1 then message 1 from stream 2, then message 2 from stream 1 ...
+
+```
+import mflow
+stream_one = mflow.connect('tcp://source1:7777')
+stream_two = mflow.connect('tcp://source2:7779')
+
+import mflow.tools
+stream = mflow.tools.Merge(stream_one, stream_two)
+
+message = stream.receive()
+
+stream.disconnect()
 ```
 
 # Command Line
