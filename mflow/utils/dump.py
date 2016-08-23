@@ -30,7 +30,7 @@ def dump_screen(receiver):
     cnt = 0
     message = receiver.next()
     cnt += 1
-    
+
     if not skip_from_message or cnt < skip_from_message:
         print(message)
 

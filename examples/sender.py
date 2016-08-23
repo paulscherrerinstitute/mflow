@@ -22,7 +22,7 @@ data = np.ones(10, dtype=np.int32)
 i = 0
 while True:
     try:
-        header = '{"htype": "array-1.0", "type": "int32","shape": [10] "frame": %d}' % i
+        header = '{"htype": "array-1.0", "type": "int32", "shape": [10], "frame": %d}' % i
         stream.send(header.encode(), send_more=True)
         stream.send(data.tobytes(), send_more=False)
         i += 1
