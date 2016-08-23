@@ -28,16 +28,16 @@ class Stream(object):
         self.address = None
 
         self.receiver = None
-        self.sender = None
         self.handlers = {}
 
-    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
         :param mode:            Message delivery mode PUSH/PULL PUB/SUB
         :param receive_timeout: Receive timeout in milliseconds (-1 = infinite)
         :param queue_size:      Queue size
+        :param linger:          Linger option -i.e. how long to keep message in memory at socket shutdown - in milliseconds (-1 infinite)
         :return:
         """
 
@@ -47,6 +47,7 @@ class Stream(object):
             self.socket.setsockopt(zmq.SUBSCRIBE, '')
 
         logger.info("Connecting to " + address)
+        self.socket.setsockopt(zmq.LINGER, linger)
         self.socket.set_hwm(queue_size)
         try:
             if conn_type == "connect":
@@ -124,24 +125,6 @@ class Stream(object):
             self.socket.send(message, zmq.SNDMORE)
         else:
             self.socket.send(message)
-
-    def send_message(self, htype, data, **kwargs):
-        """
-        User-friendly way of sending messages. Correct JSON header is created using Handlers in sender_handlers, inferring what possible from the payload itself. Further arguments will be added to the header, too. 
-
-        :param htype:           Type of header, e.g. array-1.0
-        :param data:            Payload to be sent
-        :return:
-        """
-        if self.sender is None or self.send_htype != htype:
-            try:
-                module = __import__("mflow.sender_handlers." + htype.replace('.', '_').replace('-', '_'), fromlist=".")
-                self.sender = module.SendHandler().send
-                self.send_htype = htype
-            except:
-                logger.debug(sys.exc_info()[1])
-                logger.warning('htype - ' + htype + ' -  not supported')
-        self.sender(self.socket, data, **kwargs)
 
 
 class ReceiveHandler:
