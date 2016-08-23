@@ -120,7 +120,7 @@ class Stream(object):
 
         return Message(self.receiver.statistics, data)
 
-    def send(self, message, send_more=True):
+    def send(self, message, send_more=False):
         if send_more:
             self.socket.send(message, zmq.SNDMORE)
         else:
