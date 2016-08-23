@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 address = "tcp://127.0.0.1:40000"
 
-stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, receive_timeout=1, queue_size=100)
+stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, receive_timeout=1, queue_size=1)
 
 for i in range(100):
     message = stream.receive()

@@ -120,11 +120,20 @@ class Stream(object):
 
         return Message(self.receiver.statistics, data)
 
-    def send(self, message, send_more=False):
+    def send(self, message, send_more=False, block=True):
+        flags = 0
         if send_more:
-            self.socket.send(message, zmq.SNDMORE)
-        else:
-            self.socket.send(message)
+            flags = zmq.SNDMORE
+        if not block:
+            flags = flags | zmq.NOBLOCK
+
+        try:
+            self.socket.send(message, flags)
+        except zmq.ZMQError as e:
+            if not block:
+                pass
+            else:
+                raise e
 
 
 class ReceiveHandler:
