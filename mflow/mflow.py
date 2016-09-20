@@ -44,7 +44,7 @@ class Stream(object):
         self.context = zmq.Context()
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
-            self.socket.setsockopt(zmq.SUBSCRIBE, '')
+            self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
         logger.info("Connecting to " + address)
         self.socket.setsockopt(zmq.LINGER, linger)
