@@ -20,6 +20,48 @@ class Splitter:
                 break
 
 
+class FilterSplitter:
+
+    def __init__(self, output_streams, output_filters):
+        self.output_streams = output_streams
+        self.output_filters = output_filters
+
+    def receive(self, receiver):
+
+        for filter in self.output_filters:
+            if filter:
+                filter.update()
+
+        while True:
+            message = receiver.next()
+            more = receiver.has_more()
+
+            for stream, filter in list(zip(self.output_streams, self.output_filters)):
+                if filter:
+                    if filter.check():
+                        stream.send(message, send_more=more)
+                else:
+                    stream.send(message, send_more=more)
+
+            if not more:
+                break
+
+
+class ModuloFilter:
+    def __init__(self, modulo=1):
+        self.modulo = modulo
+        self.counter = 0  # Internal counter
+
+    def update(self):
+        self.counter += 1
+
+    def check(self):
+        if self.counter == self.modulo:
+            self.counter = 0
+            return True
+        return False
+
+
 def main():
 
     import argparse
@@ -118,6 +160,8 @@ def load_configuration(filename):
 
     # Construct output streams
     output_streams = []
+    output_filters = []
+    use_filter = False
     for stream in configuration['streams']:
         address = stream['address']
 
@@ -139,9 +183,18 @@ def load_configuration(filename):
         if 'queue_size' in stream:
             queue_size = stream['queue_size']
 
+        if 'modulo' in stream:
+            output_filters.append(ModuloFilter(int(stream['modulo'])))
+            use_filter = True
+        else:
+            output_filters.append(None)
+
         output_streams.append(mflow.connect(address, conn_type=connection_type, mode=mode, queue_size=queue_size))
 
-    return input_stream, Splitter(output_streams)
+    if use_filter:
+        return input_stream, FilterSplitter(output_streams, output_filters)
+    else:
+        return input_stream, Splitter(output_streams)
 
 
 if __name__ == '__main__':

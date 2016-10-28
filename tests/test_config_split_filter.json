@@ -1,0 +1,18 @@
+{
+    "source": {
+        "address": "tcp://localhost:7777",
+        "mode": "PULL",
+        "queue_size": 10
+    },
+    "streams": [
+        {
+            "address": "tcp://*:8888",
+            "mode": "PUSH"
+        },
+        {
+            "address": "tcp://*:9999",
+            "mode": "PUSH",
+            "modulo": 10000
+        }
+    ]
+}
