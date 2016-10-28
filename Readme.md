@@ -240,6 +240,27 @@ Supported modes are PULL/SUB for the source and PUSH/PUB for outgoing streams.
 
 The default value for mode (if omitted) is PULL for the source and PUSH for output streams. The default queue size (if omitted) is 100 for both source and output streams.
 
+Output streams can be reduced by applying a modulo. This can be done by specifying the modulo attribute as follows:
+
+```json
+{
+    "source": {
+        "address": "tcp://localhost:7777",
+        "mode": "PULL",
+        "queue_size": 10
+    },
+    "streams": [
+        {
+            "address": "tcp://*:8888",
+            "mode": "PUSH",
+            "modulo": 1000
+        }
+    ]
+}
+
+Such a configuration will result in that only every 1000 message is send out to the output stream.
+
+
 # Development
 
 ## PyPi
