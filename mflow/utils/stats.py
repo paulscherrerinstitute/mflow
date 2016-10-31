@@ -23,11 +23,15 @@ def main():
     parser = argparse.ArgumentParser(description='Stream statistic utility')
 
     parser.add_argument('source', type=str, help='Source address - format "tcp://<address>:<port>"')
+    parser.add_argument('-m', '--mode', default='pull', type=str,
+                        help='Communication mode - either pull (default) or sub')
 
     arguments = parser.parse_args()
 
     address = arguments.source
-    stream = mflow.connect(address)
+    mode = mflow.SUB if arguments.mode == 'sub' else mflow.PULL
+
+    stream = mflow.connect(address, mode=mode)
 
     global messages_received
     global total_bytes_received

@@ -13,16 +13,19 @@ def main():
     parser.add_argument('folder', type=str, help='Destination folder')
     parser.add_argument('-a', '--address', default="tcp://*:9999", type=str,
                         help='Address - format "tcp://<address>:<port>" (default: "tcp://*:9999")')
+    parser.add_argument('-m', '--mode', default='push', type=str,
+                        help='Communication mode - either push (default) or pub')
 
     arguments = parser.parse_args()
 
     folder = arguments.folder
     address = arguments.address
+    mode = mflow.PUB if arguments.mode == 'pub' else mflow.PUSH
 
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    stream = mflow.connect(address, conn_type="bind", mode=zmq.PUSH)
+    stream = mflow.connect(address, conn_type="bind", mode=mode)
 
     files = sorted(listdir(folder))
 

@@ -59,6 +59,8 @@ def main():
 
     parser.add_argument('source', type=str, help='Source address - format "tcp://<address>:<port>"')
     parser.add_argument('folder', default=None, nargs='?', type=str, help='Destination folder')
+    parser.add_argument('-m', '--mode', default='pull', type=str,
+                        help='Communication mode - either pull (default) or sub')
     parser.add_argument('-s', '--skip', default=None, type=int,
                         help='Skip sub-messages starting from this number (including number)')
 
@@ -67,11 +69,12 @@ def main():
     folder = arguments.folder
     address = arguments.source
     skip_from_message = arguments.skip
+    mode = mflow.SUB if arguments.mode == 'sub' else mflow.PULL
 
     if folder and not os.path.exists(folder):
         os.makedirs(folder)
 
-    stream = mflow.connect(address)
+    stream = mflow.connect(address, mode=mode)
 
     # Signal handling
     global receive_more

@@ -10,12 +10,15 @@ def main():
                         help='Address - format "tcp://<address>:<port>"')
     parser.add_argument('-s', '--size', default=1, type=float,
                         help='Size of data to send (MB)"')
+    parser.add_argument('-m', '--mode', default='push', type=str,
+                        help='Communication mode - either push (default) or pub')
 
     arguments = parser.parse_args()
     address = arguments.address
     size = arguments.size
+    mode = mflow.PUB if arguments.mode == 'pub' else mflow.PUSH
 
-    stream = mflow.connect(address, conn_type="bind", mode=mflow.PUSH)
+    stream = mflow.connect(address, conn_type="bind", mode=mode)
 
     size_bytes = int(size*1024.0*1024.0)
     data = bytearray(size_bytes)
