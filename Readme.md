@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/datastreaming/mflow.svg?branch=master)](https://travis-ci.org/datastreaming/mflow)
+
 # Overview
 __mflow__ facilitates the handling of ZMQ data streams. It provides basic accounting and statistics on messages
 received/send as well as an easy way to handle different types of messages within a stream.
