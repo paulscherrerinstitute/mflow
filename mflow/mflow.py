@@ -62,7 +62,7 @@ class Stream(object):
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
-            logger.info("Timeout set: ", receive_timeout )
+            logger.info("Timeout set: ", receive_timeout)
 
         logger.info("Connection done")
         self.address = address
@@ -92,7 +92,7 @@ class Stream(object):
         :return:            Map holding the data, timestamp, data and main header
         """
 
-        data = None
+        message = None
         # Set blocking flag in receiver
         self.receiver.block = block
 
@@ -102,13 +102,13 @@ class Stream(object):
                 htype = self.receiver.header()["htype"]
             except zmq.Again:
                 if not block:
-                    return Message(self.receiver.statistics, data)
+                    return message
             except zmq.ZMQError:
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
                 self.receiver.flush()
-                return Message(self.receiver.statistics, data)
+                return message
 
             try:
                 handler = self.handlers[htype]
@@ -121,6 +121,7 @@ class Stream(object):
             if data["header"] is not None:
                 self.receiver.statistics.messages_received += 1
                 self.receiver.statistics.total_bytes_received += self.receiver.statistics.bytes_received
+                message = Message(self.receiver.statistics, data)
         except:
             logger.debug(sys.exc_info()[1])
             logger.warning('Unable to decode message - skipping')
@@ -128,7 +129,7 @@ class Stream(object):
         # Clear remaining sub-messages if exist
         self.receiver.flush()
 
-        return Message(self.receiver.statistics, data)
+        return message
 
     def send(self, message, send_more=False, block=True):
         flags = 0

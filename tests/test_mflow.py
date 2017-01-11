@@ -51,13 +51,14 @@ def receiver(address, N, q):
         # message = stream.receive(block=False, handler=Handler().receive)
         #print(socket.recv_json())
         #print(socket.recv())
-        print("message", message)
-        if message.data is not None:
-            if message.data["header"] is not None:
-                print("DATA", message.data)
-                i += 1
-                q.put({"stat": message.statistics.messages_received, "counter": i})
-            #time.sleep(0.1)
+        if message:
+            print("message", message)
+            if message.data is not None:
+                if message.data["header"] is not None:
+                    print("DATA", message.data)
+                    i += 1
+                    q.put({"stat": message.statistics.messages_received, "counter": i})
+                #time.sleep(0.1)
     stream.disconnect()
     return
 
