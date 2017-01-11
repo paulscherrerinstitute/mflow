@@ -31,7 +31,7 @@ def sender(address, N, q):
             i += 1
 
             # Send out every 10ms
-            #time.sleep(0.1)
+            time.sleep(0.1)
 
         except KeyboardInterrupt:
             break
@@ -53,10 +53,10 @@ def receiver(address, N, q):
         #print(socket.recv())
         print("message", message)
         if message.data is not None:
-            #if message.data["header"] is not None:
-            print("DATA", message.data)
-            i += 1
-            q.put({"stat": message.statistics.messages_received, "counter": i})
+            if message.data["header"] is not None:
+                print("DATA", message.data)
+                i += 1
+                q.put({"stat": message.statistics.messages_received, "counter": i})
             #time.sleep(0.1)
     stream.disconnect()
     return

@@ -118,7 +118,9 @@ class Stream(object):
 
         try:
             data = handler(self.receiver)
-            self.receiver.statistics.messages_received += 1
+            if data["header"] is not None:
+                self.receiver.statistics.messages_received += 1
+                self.receiver.statistics.total_bytes_received += self.receiver.statistics.bytes_received
         except:
             logger.debug(sys.exc_info()[1])
             logger.warning('Unable to decode message - skipping')
