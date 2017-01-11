@@ -100,7 +100,6 @@ class Stream(object):
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
             except:
-                # the flush here when eagain is raised effectively loses 50% messages
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
@@ -141,6 +140,7 @@ class Stream(object):
         except zmq.ZMQError as e:
             logger.error(sys.exc_info()[1])
             raise e
+
 
 class ReceiveHandler:
 

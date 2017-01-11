@@ -10,6 +10,8 @@ import logging
 import numpy as np
 import zmq
 
+from mflow.handlers.array_1_0 import Handler
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.INFO)
@@ -44,7 +46,8 @@ def receiver(address, N, q):
     socket.connect(address)
     i = 0
     while i < N:
-        message = stream.receive(block=False, )
+        # message = stream.receive(block=False)
+        message = stream.receive(block=False, handler=Handler().receive)
         #print(socket.recv_json())
         #print(socket.recv())
 
@@ -86,6 +89,6 @@ class BaseTests(unittest.TestCase):
             i = data["counter"]
             stat = data["stat"]
         logger.info("%d %d" % (i, stat))
-        self.assertEqual(N, i)
-        self.assertEqual(N, stat)
+        self.assertEqual(N, i, 'Received too few messages')
+        self.assertEqual(N, stat, 'Stats reports wrong number messages received')
 
