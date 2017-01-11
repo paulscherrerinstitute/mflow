@@ -62,6 +62,7 @@ class Stream(object):
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
+            logger.info("Timeout set: ", receive_timeout )
 
         logger.info("Connection done")
         self.address = address
@@ -92,12 +93,17 @@ class Stream(object):
         """
 
         data = None
+        # Set blocking flag in receiver
+        self.receiver.block = block
+
         if not handler:
             try:
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
-            except:
-                # the flush here when eagain is raised effectively loses 50% messages
+            except zmq.Again:
+                if not block:
+                    return Message(self.receiver.statistics, data)
+            except zmq.ZMQError:
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
@@ -111,10 +117,8 @@ class Stream(object):
                 logger.warning('htype - ' + htype + ' -  not supported')
 
         try:
-            # Set blocking flag in receiver
-            self.receiver.block = block
-
             data = handler(self.receiver)
+            self.receiver.statistics.messages_received += 1
         except:
             logger.debug(sys.exc_info()[1])
             logger.warning('Unable to decode message - skipping')
@@ -226,10 +230,10 @@ class DefaultHandlers(dict):
         raise KeyError(key)
 
 
-def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None):
+def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000):
     stream = Stream()
     stream.handlers = DefaultHandlers()
-    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size)
+    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size, linger=linger)
     return stream
 
 
