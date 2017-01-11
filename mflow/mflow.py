@@ -91,6 +91,9 @@ class Stream(object):
         :return:            Map holding the data, timestamp, data and main header
         """
 
+        # Set blocking flag in receiver
+        self.receiver.block = block
+
         data = None
         if not handler:
             try:
@@ -111,9 +114,6 @@ class Stream(object):
                 logger.warning('htype - ' + htype + ' -  not supported')
 
         try:
-            # Set blocking flag in receiver
-            self.receiver.block = block
-
             data = handler(self.receiver)
         except:
             logger.debug(sys.exc_info()[1])
