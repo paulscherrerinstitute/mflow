@@ -7,7 +7,6 @@ source:
 requirements:
     build:
         - python
-        - setuptools
     run:
         - python
         - pyzmq
@@ -19,6 +18,12 @@ build:
     - m_stats = mflow.utils.stats:main
     - m_split = mflow.utils.split:main
     - m_generate = mflow.utils.generate:main
+
+test:
+  source_files:
+    - mflow/tests/
+  requires:
+    - numpy
 
 about:
     home: https://github.com/datastreaming/mflow

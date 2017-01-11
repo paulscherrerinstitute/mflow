@@ -72,13 +72,13 @@ class BaseTests(unittest.TestCase):
         s = Process(target=sender, args=(self.address, n, q))
         s.start()
 
-        time.sleep(1)
+        time.sleep(0.1)
         q2 = Queue()
         r = Process(target=receiver, args=(self.address, n, q2, False))
         r.start()
 
         s.join()
-        time.sleep(2)
+        time.sleep(1)
         r.terminate()
         i = 0
         stat = 0

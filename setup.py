@@ -9,7 +9,8 @@ setup(name='mflow',
       author='Paul Scherrer Institute',
       license='GNU GPLv3',
       packages=['mflow', 'mflow.utils', 'mflow.handlers'],
-      install_requires=[
-          'pyzmq',
-      ],
+      # managed by conda
+      #install_requires=[
+      #    'pyzmq',
+      #],
      )
