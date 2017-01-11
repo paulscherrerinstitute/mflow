@@ -6,7 +6,9 @@ import sys
 # setting up logging
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
-formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
+#formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
+formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -46,21 +48,23 @@ class Stream(object):
         if mode == zmq.SUB:
             self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
-        logger.info("Connecting to " + address)
         self.socket.setsockopt(zmq.LINGER, linger)
         self.socket.set_hwm(queue_size)
         try:
-            if conn_type == "connect":
+            if conn_type == CONNECT:
                 self.socket.connect(address)
+                logger.info("Connected to %s" % address)
             else:
                 self.socket.bind(address)
+                logger.info("Bound to %s" % address)
         except:
-            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000" % address)
+            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000." % address)
+            logger.error("Full error: %s" % sys.exc_info()[1])
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
+            logger.info("Timeout set: ", receive_timeout)
 
-        logger.info("Connection done")
         self.address = address
 
         # If socket is used for receiving messages, create receive handler
@@ -70,7 +74,7 @@ class Stream(object):
     def disconnect(self):
 
         if self.socket.closed:
-            logger.warn("Trying to close an already closed socket... ignore and return")
+            logger.warning("Trying to close an already closed socket... ignore and return")
             return
         try:
             self.socket.disconnect(self.address)
@@ -88,17 +92,23 @@ class Stream(object):
         :return:            Map holding the data, timestamp, data and main header
         """
 
-        data = None
+        message = None
+        # Set blocking flag in receiver
+        self.receiver.block = block
+
         if not handler:
             try:
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
-            except:
-                logger.debug(sys.exc_info()[1])
+            except zmq.Again:
+                if not block:
+                    return message
+            except zmq.ZMQError:
+                logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
                 self.receiver.flush()
-                return Message(self.receiver.statistics, data)
+                return message
 
             try:
                 handler = self.handlers[htype]
@@ -107,10 +117,11 @@ class Stream(object):
                 logger.warning('htype - ' + htype + ' -  not supported')
 
         try:
-            # Set blocking flag in receiver
-            self.receiver.block = block
-
             data = handler(self.receiver)
+            if data["header"] is not None:
+                self.receiver.statistics.messages_received += 1
+                self.receiver.statistics.total_bytes_received += self.receiver.statistics.bytes_received
+                message = Message(self.receiver.statistics, data)
         except:
             logger.debug(sys.exc_info()[1])
             logger.warning('Unable to decode message - skipping')
@@ -118,7 +129,7 @@ class Stream(object):
         # Clear remaining sub-messages if exist
         self.receiver.flush()
 
-        return Message(self.receiver.statistics, data)
+        return message
 
     def send(self, message, send_more=False, block=True):
         flags = 0
@@ -129,11 +140,14 @@ class Stream(object):
 
         try:
             self.socket.send(message, flags)
-        except zmq.ZMQError as e:
+        except zmq.Again as e:
             if not block:
                 pass
             else:
                 raise e
+        except zmq.ZMQError as e:
+            logger.error(sys.exc_info()[1])
+            raise e
 
 
 class ReceiveHandler:
@@ -181,9 +195,9 @@ class ReceiveHandler:
                 pass
 
         # Update statistics
-        self.statistics.total_bytes_received += self.statistics.bytes_received
+        #self.statistics.total_bytes_received += self.statistics.bytes_received
         self.statistics.bytes_received = 0
-        self.statistics.messages_received += 1
+        #self.statistics.messages_received += 1
 
 
 class Statistics:
@@ -220,10 +234,10 @@ class DefaultHandlers(dict):
         raise KeyError(key)
 
 
-def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None):
+def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000):
     stream = Stream()
     stream.handlers = DefaultHandlers()
-    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size)
+    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size, linger=linger)
     return stream
 
 
