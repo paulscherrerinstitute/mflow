@@ -47,8 +47,8 @@ def receiver(address, N, q):
     #socket.connect(address)
     i = 0
     while i < N:
-        # message = stream.receive(block=False)
-        message = stream.receive(block=False, handler=Handler().receive)
+        message = stream.receive(block=False)
+        # message = stream.receive(block=False, handler=Handler().receive)
         #print(socket.recv_json())
         #print(socket.recv())
         print("message", message)
