@@ -11,6 +11,8 @@ import logging
 import numpy as np
 import zmq
 
+from mflow.handlers.array_1_0 import Handler
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.DEBUG)
@@ -29,7 +31,7 @@ def sender(address, N, q):
             i += 1
 
             # Send out every 10ms
-            time.sleep(0.1)
+            #time.sleep(0.1)
 
         except KeyboardInterrupt:
             break
@@ -40,12 +42,13 @@ def sender(address, N, q):
 
 def receiver(address, N, q):
     stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, queue_size=100, linger=100000)  #receive_timeout=-1)
-    ctx = zmq.Context()
-    socket = ctx.socket(zmq.PULL)
-    socket.connect(address)
+    #ctx = zmq.Context()
+    #socket = ctx.socket(zmq.PULL)
+    #socket.connect(address)
     i = 0
     while i < N:
-        message = stream.receive(handler=mflow.handlers.array_1_0.Handler().receive, block=True)
+        # message = stream.receive(block=False)
+        message = stream.receive(block=False, handler=Handler().receive)
         #print(socket.recv_json())
         #print(socket.recv())
         print("message", message)
@@ -73,13 +76,13 @@ class BaseTests(unittest.TestCase):
         s = Process(target=sender, args=(self.address, N, q))
         s.start()
 
-        time.sleep(0.1)
+        time.sleep(1)
         r = Process(target=receiver, args=(self.address, N, q))
         r.start()
 
 
         s.join()
-        time.sleep(5)
+        time.sleep(1)
         r.terminate()
         i = 0
         stat = 0
@@ -88,6 +91,6 @@ class BaseTests(unittest.TestCase):
             i = data["counter"]
             stat = data["stat"]
         logger.info("%d %d" % (i, stat))
-        self.assertEqual(N, i)
-        #self.assertEqual(N, stat)
+        self.assertEqual(N, i, 'Received too few messages')
+        self.assertEqual(N, stat, 'Stats reports wrong number messages received')
 
