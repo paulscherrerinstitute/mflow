@@ -6,7 +6,9 @@ import sys
 # setting up logging
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
-formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
+#formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
+formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -46,14 +48,15 @@ class Stream(object):
         if mode == zmq.SUB:
             self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
-        logger.info("Connecting to " + address)
         self.socket.setsockopt(zmq.LINGER, linger)
         self.socket.set_hwm(queue_size)
         try:
-            if conn_type == "connect":
+            if conn_type == CONNECT:
                 self.socket.connect(address)
+                logger.info("Connected to %s" % address)
             else:
                 self.socket.bind(address)
+                logger.info("Bound to %s" % address)
         except:
             logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000" % address)
 
@@ -94,7 +97,8 @@ class Stream(object):
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
             except:
-                logger.debug(sys.exc_info()[1])
+                # the flush here when eagain is raised effectively loses 50% messages
+                logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
                 self.receiver.flush()
@@ -129,12 +133,14 @@ class Stream(object):
 
         try:
             self.socket.send(message, flags)
-        except zmq.ZMQError as e:
+        except zmq.Again as e:
             if not block:
                 pass
             else:
                 raise e
-
+        except zmq.ZMQError as e:
+            logger.error(sys.exc_info()[1])
+            raise e
 
 class ReceiveHandler:
 
@@ -181,9 +187,9 @@ class ReceiveHandler:
                 pass
 
         # Update statistics
-        self.statistics.total_bytes_received += self.statistics.bytes_received
+        #self.statistics.total_bytes_received += self.statistics.bytes_received
         self.statistics.bytes_received = 0
-        self.statistics.messages_received += 1
+        #self.statistics.messages_received += 1
 
 
 class Statistics:
