@@ -58,13 +58,13 @@ class Stream(object):
                 self.socket.bind(address)
                 logger.info("Bound to %s" % address)
         except:
-            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000" % address)
+            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000." % address)
+            logger.error("Full error: %s" % sys.exc_info()[1])
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
             logger.info("Timeout set: ", receive_timeout)
 
-        logger.info("Connection done")
         self.address = address
 
         # If socket is used for receiving messages, create receive handler
@@ -74,7 +74,7 @@ class Stream(object):
     def disconnect(self):
 
         if self.socket.closed:
-            logger.warn("Trying to close an already closed socket... ignore and return")
+            logger.warning("Trying to close an already closed socket... ignore and return")
             return
         try:
             self.socket.disconnect(self.address)
