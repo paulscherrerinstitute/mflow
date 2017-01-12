@@ -63,7 +63,7 @@ class Stream(object):
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
-            logger.info("Timeout set: ", receive_timeout)
+            logger.info("Timeout set: %f" % receive_timeout)
 
         self.address = address
 
@@ -95,19 +95,21 @@ class Stream(object):
         message = None
         # Set blocking flag in receiver
         self.receiver.block = block
+        receive_is_successful = False
 
         if not handler:
             try:
                 # Dynamically select handler
                 htype = self.receiver.header()["htype"]
             except zmq.Again:
-                if not block:
-                    return message
+                # not clear if this is needed
+                self.receiver.flush(receive_is_successful)
+                return message
             except zmq.ZMQError:
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
-                self.receiver.flush()
+                self.receiver.flush(receive_is_successful)
                 return message
 
             try:
@@ -118,16 +120,17 @@ class Stream(object):
 
         try:
             data = handler(self.receiver)
-            if data["header"] is not None:
-                self.receiver.statistics.messages_received += 1
-                self.receiver.statistics.total_bytes_received += self.receiver.statistics.bytes_received
+
+            # as an extra safety margin
+            if data is not None:
+                receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
         except:
-            logger.debug(sys.exc_info()[1])
+            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
             logger.warning('Unable to decode message - skipping')
 
         # Clear remaining sub-messages if exist
-        self.receiver.flush()
+        self.receiver.flush(receive_is_successful)
 
         return message
 
@@ -184,7 +187,7 @@ class ReceiveHandler:
         except zmq.ZMQError:
             return None
 
-    def flush(self):
+    def flush(self, success=True):
         flags = 0 if self.block else zmq.NOBLOCK
         # Clear remaining sub-messages
         while self.has_more():
@@ -194,10 +197,11 @@ class ReceiveHandler:
             except zmq.ZMQError:
                 pass
 
-        # Update statistics
-        #self.statistics.total_bytes_received += self.statistics.bytes_received
-        self.statistics.bytes_received = 0
-        #self.statistics.messages_received += 1
+        if success:
+            # Update statistics
+            self.statistics.total_bytes_received += self.statistics.bytes_received
+            self.statistics.bytes_received = 0
+            self.statistics.messages_received += 1
 
 
 class Statistics:
