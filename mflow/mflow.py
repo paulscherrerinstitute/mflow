@@ -120,7 +120,6 @@ class Stream(object):
 
         try:
             data = handler(self.receiver)
-
             # as an extra safety margin
             if data is not None:
                 receive_is_successful = True
