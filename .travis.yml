@@ -34,4 +34,6 @@ script:
 
 deploy:
   provider: script
-  script: bash -c 'find $HOME/miniconda/conda-bld/${TRAVIS_OS_NAME}-64 -name "*.tar.bz2" -exec anaconda -t $CONDA_TOKEN upload {} \; ; echo "done"'
+  script: find $HOME/miniconda/conda-bld/${TRAVIS_OS_NAME}-64 -name "*.tar.bz2" -exec anaconda -t $CONDA_TOKEN upload {} \;
+  on:
+    tags: true
