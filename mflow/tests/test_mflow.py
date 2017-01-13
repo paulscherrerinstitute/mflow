@@ -34,7 +34,7 @@ def sender(address, n, q, block=True):
             q.put({'bytes_sent': data_size, 'total_sent': total_size})
 
             # Send out every 10ms
-            time.sleep(0.1)
+            time.sleep(0.2)
 
         except KeyboardInterrupt:
             break
@@ -54,7 +54,7 @@ def receiver(address, n, q, block=True):
                     i += 1
                     q.put({"total_sent": message.statistics.total_bytes_received,
                            "stat": message.statistics.messages_received, "counter": i, })
-                    time.sleep(0.1)
+        #time.sleep(0.1)
     stream.disconnect()
     return
 
@@ -69,16 +69,16 @@ class BaseTests(unittest.TestCase):
     def test_push_pull_recv_noblock(self):
         n = 10
         q = Queue()
-        s = Process(target=sender, args=(self.address, n, q))
+        s = Process(target=sender, args=(self.address, n, q, ))
         s.start()
 
-        time.sleep(1)
+        time.sleep(0.1)
         q2 = Queue()
         r = Process(target=receiver, args=(self.address, n, q2, False))
         r.start()
 
         s.join()
-        time.sleep(2)
+        time.sleep(1)
         r.terminate()
         i = 0
         stat = 0
