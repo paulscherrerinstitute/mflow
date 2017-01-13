@@ -151,6 +151,30 @@ class Stream(object):
             logger.error(sys.exc_info()[1])
             raise e
 
+    def send_all(self, headers, *args, block=True):
+        """
+
+        :param headers:
+        :param args:
+        :param block:
+        :return:
+        """
+        if len(headers) == 1:
+            headers = [headers, ]
+        for header in headers:
+            if isinstance(header, dict):
+                header = json.dumps(header).encode('utf-8')
+            elif isinstance(header, str):
+                header = header.encode('utf-8')
+            else:
+                logger.error("Header must be in a dict or a properly formatted string")
+                raise TypeError
+            self.send(header, send_more=True)
+
+        for data in args[:-1]:
+            self.send(data, send_more=True, block=block)
+        self.send(args[-1], block=block)
+
 
 class ReceiveHandler:
 
