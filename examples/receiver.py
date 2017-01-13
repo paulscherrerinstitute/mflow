@@ -16,13 +16,11 @@ address = "tcp://127.0.0.1:40000"
 
 stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, receive_timeout=1, queue_size=1)
 
-received = 0
 while True:
     message = stream.receive()
     if message:
-        received += 1
         print("Received frame %d." % message.data["header"]["frame"])
-        #print(message.data)
-        #print(message.statistics.messages_received)
+        print(message.data)
+        print(message.statistics.messages_received)
 
 stream.disconnect()
