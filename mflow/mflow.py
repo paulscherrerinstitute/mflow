@@ -153,13 +153,14 @@ class Stream(object):
 
     def send_all(self, headers, *args, block=True):
         """
+        Sends data according to the headers describing the format.
 
-        :param headers:
-        :param args:
-        :param block:
-        :return:
+        :param headers: list or tuple or dict, containing json headers in dict format
+        :param args: data to be sent, already in binary form (e.g., np.array.tobytes())
+        :param block: perform blocking send, defalut: True
+        :return: None
         """
-        if len(headers) == 1:
+        if not isinstance(headers, list) and not isinstance(headers, tuple):
             headers = [headers, ]
         for header in headers:
             if isinstance(header, dict):
