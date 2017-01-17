@@ -26,7 +26,7 @@ install:
   - rm -rf .condarc
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
-  - conda install conda-build numpy anaconda-client
+  - conda install numpy anaconda-client conda-build
   # build
   - conda build -c $CONDA_CHANNEL --skip-existing conda-recipe
 
