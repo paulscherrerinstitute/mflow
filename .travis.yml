@@ -22,7 +22,8 @@ install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
+  # - hash -r
+  - rm -rf .condarc
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build numpy anaconda-client
