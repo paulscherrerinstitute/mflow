@@ -28,6 +28,7 @@ install:
   - conda update -q --all
   # - conda update -q conda
   # - conda info -a
+  - conda config --add channels defaults
   - conda config --show
   - conda install numpy anaconda-client conda-build;
   # build
