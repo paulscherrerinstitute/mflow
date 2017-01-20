@@ -4,6 +4,8 @@ import logging
 import sys
 
 # setting up logging
+from mflow.handlers import raw_1_0
+
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
@@ -122,7 +124,7 @@ class Stream(object):
             data = handler(self.receiver)
 
             # as an extra safety margin
-            if data is not None:
+            if data:
                 receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
         except:
@@ -132,6 +134,10 @@ class Stream(object):
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
 
+        return message
+
+    def receive_raw(self, block=True):
+        message = self.receive(handler=raw_1_0.Handler().receive, block=block)
         return message
 
     def send(self, message, send_more=False, block=True):
