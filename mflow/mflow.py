@@ -137,7 +137,7 @@ class Stream(object):
         return message
 
     def receive_raw(self, block=True):
-        message = self.receive(handler=raw_1_0.Handler().receive, block=block)
+        message = self.receive(handler=self.handlers["raw_1_0"], block=block)
         return message
 
     def send(self, message, send_more=False, block=True):
