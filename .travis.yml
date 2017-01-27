@@ -32,7 +32,8 @@ install:
   - conda config --show
   - conda install numpy anaconda-client conda-build;
   # build
-  - conda build conda-recipe
+  - ls -l
+  - conda build -c $CONDA_CHANNEL --skip-existing conda-recipe
 
 script:
   - echo "No test scripts to be run!"
