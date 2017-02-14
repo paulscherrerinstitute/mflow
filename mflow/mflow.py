@@ -1,5 +1,8 @@
 import zmq
-import json
+try:
+    import ujson as json
+except:
+    import json
 import logging
 import sys
 
