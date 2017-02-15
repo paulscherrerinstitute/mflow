@@ -7,6 +7,8 @@ import logging
 import sys
 
 # setting up logging
+from mflow.handlers import raw_1_0
+
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
@@ -127,7 +129,7 @@ class Stream(object):
         try:
             data = handler(self.receiver)
             # as an extra safety margin
-            if data is not None:
+            if data:
                 receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
         except:
@@ -139,7 +141,12 @@ class Stream(object):
 
         return message
 
+    def receive_raw(self, block=True):
+        message = self.receive(handler=self.handlers["raw_1_0"], block=block)
+        return message
+
     def send(self, message, send_more=False, block=True, as_json=False):
+
         flags = 0
         if send_more:
             flags = zmq.SNDMORE
