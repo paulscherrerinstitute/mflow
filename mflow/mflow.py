@@ -111,7 +111,7 @@ class Stream(object):
                 # not clear if this is needed
                 self.receiver.flush(receive_is_successful)
                 return message
-            except zmq.ZMQError:
+            except:
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
