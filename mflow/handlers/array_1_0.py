@@ -1,9 +1,12 @@
+import json
+
 import numpy
 
 
 class Handler:
 
-    def receive(self, receiver):
+    @staticmethod
+    def receive(receiver):
 
         header = receiver.next(as_json=True)
         return_value = None
@@ -24,6 +27,11 @@ class Handler:
                             'data': data}
 
         return return_value
+
+    @staticmethod
+    def send(message, send, block=True):
+        send(json.dumps(message.data["header"]).encode(), send_more=True, block=True)
+        send(message.data["data"][0].tobytes(), block=block)
 
 
 def get_image(raw_data, dtype, shape):

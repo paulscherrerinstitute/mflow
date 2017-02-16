@@ -1,9 +1,12 @@
+import json
+
 
 class Handler:
 
     header_details = 'all'  # values can be 'all', 'basic', 'none'
 
-    def receive(self, receiver):
+    @staticmethod
+    def receive(receiver):
         header = receiver.next(as_json=True)
         return_value = dict()
         return_value['header'] = header
@@ -52,3 +55,26 @@ class Handler:
             return_value['appendix'] = appendix
 
         return return_value
+
+    @staticmethod
+    def send(message, send, block=True):
+        detailed_header = message.data["header"]['header_detail'] == "all"
+        has_appendix = "appendix" in message.data
+
+        # Header and part_2 are always present.
+        send(json.dumps(message.data["header"]).encode(), send_more=True, block=True)
+        # Send more data if message has appendix or a detailed header.
+        send(json.dumps(message.data["part_2"]).encode(), send_more=has_appendix or detailed_header, block=block)
+
+        # Other parts only in complete header.
+        if detailed_header:
+            send(json.dumps(message.data["part_3"]).encode(), send_more=True, block=block)
+            send(message.data["part_4_raw"], send_more=True, block=block)
+            send(json.dumps(message["data"]["part_5"]).encode(), send_more=True, block=block)
+            send(message.data["part_6_raw"], send_more=True, block=block)
+            send(json.dumps(message.data["part_7"]).encode(), send_more=True, block=block)
+            # Send more only if it has appendix.
+            send(message.data["part_8_raw"], send_more=has_appendix, block=block)
+
+        if has_appendix:
+            send(json.dumps(message.data["appendix"]).encode(), send_more=False, block=block)
