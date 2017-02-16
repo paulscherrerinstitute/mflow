@@ -30,8 +30,8 @@ class Handler:
 
     @staticmethod
     def send(message, send, block=True):
-        send(json.dumps(message.data["header"]).encode(), send_more=True, block=True)
-        send(message.data["data"][0].tobytes(), block=block)
+        send(json.dumps(message["header"]).encode(), send_more=True, block=True)
+        send(message["data"][0].tobytes(), block=block)
 
 
 def get_image(raw_data, dtype, shape):

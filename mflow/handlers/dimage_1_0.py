@@ -26,7 +26,7 @@ class Handler:
 
     @staticmethod
     def send(message, send, block=True):
-        send(json.dumps(message.data["header"]).encode(), send_more=True, block=True)
-        send(json.dumps(message.data["part_2"]).encode(), send_more=True, block=block)
-        send(message.data["part_3_raw"], send_more=True, block=block)
-        send(json.dumps(message.data["part_4"]).encode(), send_more=False, block=block)
+        send(json.dumps(message["header"]).encode(), send_more=True, block=True)
+        send(json.dumps(message["part_2"]).encode(), send_more=True, block=block)
+        send(message["part_3_raw"], send_more=True, block=block)
+        send(json.dumps(message["part_4"]).encode(), send_more=False, block=block)
