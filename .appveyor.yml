@@ -27,5 +27,3 @@ install:
 
 on_success:
   - anaconda -t %CONDA_TOKEN% upload %MINICONDA%\\conda-bld\\win-%PYTHON_ARCH%\\*.tar.bz2
-    on:
-      appveyor_repo_tag: true
