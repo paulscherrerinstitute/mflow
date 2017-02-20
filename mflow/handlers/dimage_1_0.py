@@ -1,8 +1,9 @@
-import zmq
+import json
 
 class Handler:
 
-    def receive(self, receiver):
+    @staticmethod
+    def receive(receiver):
         header = receiver.next(as_json=True)
         return_value = {}
 
@@ -22,3 +23,10 @@ class Handler:
         return_value['part_4'] = part_4
         
         return return_value
+
+    @staticmethod
+    def send(message, send, block=True):
+        send(json.dumps(message["header"]).encode(), send_more=True, block=True)
+        send(json.dumps(message["part_2"]).encode(), send_more=True, block=block)
+        send(message["part_3_raw"], send_more=True, block=block)
+        send(json.dumps(message["part_4"]).encode(), send_more=False, block=block)

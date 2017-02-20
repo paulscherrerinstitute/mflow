@@ -1,7 +1,10 @@
+import json
+
+
 class Handler:
 
-    def receive(self, receiver):
-
+    @staticmethod
+    def receive(receiver):
         header = receiver.next(as_json=True)
         return_value = None
         data = []
@@ -19,3 +22,10 @@ class Handler:
                             'data': data}
 
         return return_value
+
+    @staticmethod
+    def send(message, send, block=True):
+        send(json.dumps(message["header"]).encode(), send_more=True, block=True)
+
+        for data in message["data"]:
+            send(data, block=block)

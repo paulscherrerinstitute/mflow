@@ -1,11 +1,11 @@
+from functools import partial
+
 import zmq
 import json
 import logging
 import sys
 
 # setting up logging
-from mflow.handlers import raw_1_0
-
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
@@ -86,6 +86,7 @@ class Stream(object):
             logger.debug(sys.exc_info()[1])
             logger.info("Unable to disconnect properly")
 
+
     def receive(self, handler=None, block=True):
         """
         :param handler:     Reference to a specific message handler function to use for interpreting
@@ -115,7 +116,7 @@ class Stream(object):
                 return message
 
             try:
-                handler = self.handlers[htype]
+                handler = self.handlers[htype].receive
             except:
                 logger.debug(sys.exc_info()[1])
                 logger.warning('htype - ' + htype + ' -  not supported')
@@ -137,7 +138,7 @@ class Stream(object):
         return message
 
     def receive_raw(self, block=True):
-        message = self.receive(handler=self.handlers["raw_1_0"], block=block)
+        message = self.receive(handler=self.handlers["raw_1_0"].receive, block=block)
         return message
 
     def send(self, message, send_more=False, block=True):
@@ -157,6 +158,30 @@ class Stream(object):
         except zmq.ZMQError as e:
             logger.error(sys.exc_info()[1])
             raise e
+
+    def forward(self, message, handler=None, block=True):
+
+        if not handler:
+            try:
+                # Dynamically select handler
+                htype = message["header"]["htype"]
+            except Exception as e:
+                logger.debug(sys.exc_info())
+                logger.warning('Unable to read header - skipping')
+                # Clear remaining sub-messages if exist
+                raise e
+
+            try:
+                handler = self.handlers[htype].send
+            except:
+                logger.debug(sys.exc_info()[1])
+                logger.warning('htype - ' + htype + ' -  not supported')
+
+        try:
+            handler(message, send=self.send, block=block)
+        except:
+            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+            logger.warning('Unable to send message - skipping')
 
 
 class ReceiveHandler:
@@ -233,7 +258,7 @@ class DefaultHandlers(dict):
             if key not in self.blacklist:
                 logger.info('Handler missing - try to load handler for - '+key)
                 module = __import__("mflow.handlers." + key.replace('.', '_').replace('-', '_'), fromlist=".")
-                handler = module.Handler().receive
+                handler = module.Handler
                 self[key] = handler
                 logger.info('Handler loaded')
                 return handler
