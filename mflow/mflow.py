@@ -1,7 +1,10 @@
 from functools import partial
 
 import zmq
-import json
+try:
+    import ujson as json
+except:
+    import json
 import logging
 import sys
 
@@ -34,7 +37,7 @@ class Stream(object):
         self.receiver = None
         self.handlers = {}
 
-    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
@@ -45,7 +48,10 @@ class Stream(object):
         :return:
         """
 
-        self.context = zmq.Context()
+        if not context:
+            self.context = zmq.Context()
+        else:
+            self.context = context
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
             self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
@@ -123,7 +129,6 @@ class Stream(object):
 
         try:
             data = handler(self.receiver)
-
             # as an extra safety margin
             if data:
                 receive_is_successful = True
@@ -141,7 +146,8 @@ class Stream(object):
         message = self.receive(handler=self.handlers["raw_1_0"].receive, block=block)
         return message
 
-    def send(self, message, send_more=False, block=True):
+    def send(self, message, send_more=False, block=True, as_json=False):
+
         flags = 0
         if send_more:
             flags = zmq.SNDMORE
@@ -149,7 +155,10 @@ class Stream(object):
             flags = flags | zmq.NOBLOCK
 
         try:
-            self.socket.send(message, flags)
+            if as_json:
+                self.socket.send_json(message, flags)
+            else:
+                self.socket.send(message, flags)
         except zmq.Again as e:
             if not block:
                 pass

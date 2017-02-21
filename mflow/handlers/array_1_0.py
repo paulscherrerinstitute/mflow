@@ -9,7 +9,8 @@ class Handler:
     def receive(receiver):
 
         header = receiver.next(as_json=True)
-        return_value = None
+
+        return_value = {}
         data = []
 
         # header contains: "htype", "shape", "type", "frame", "endianess", "source", "encoding", "tags"
