@@ -25,5 +25,12 @@ install:
   # build
   - conda build -c %CONDA_CHANNEL% --skip-existing conda-recipe
 
-on_success:
+deploy:
+  - provider: Environment
+    name: master
+    on:
+      branch: master
+      appveyor_repo_tag: true
+
+deploy_script:
   - anaconda -t %CONDA_TOKEN% upload %MINICONDA%\\conda-bld\\win-%PYTHON_ARCH%\\*.tar.bz2
