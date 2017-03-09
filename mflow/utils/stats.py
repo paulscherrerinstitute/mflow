@@ -15,6 +15,8 @@ def dump(receiver):
     while receiver.has_more():
         receiver.next()
 
+    return "data"
+
 
 def main():
 
