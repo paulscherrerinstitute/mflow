@@ -1,6 +1,11 @@
-from functools import partial
-
 import zmq
+
+from mflow.handlers import raw_1_0
+from mflow.handlers import dseries_end_1_0
+from mflow.handlers import dimage_1_0
+from mflow.handlers import array_1_0
+from mflow.handlers import dheader_1_0
+
 try:
     import ujson as json
 except:
@@ -25,6 +30,22 @@ SUB = zmq.SUB
 PUSH = zmq.PUSH
 PULL = zmq.PULL
 
+receive_handlers = {
+    "array-1.0": array_1_0.Handler.receive,
+    "dheader-1.0": dheader_1_0.Handler.receive,
+    "dimage-1.0": dimage_1_0.Handler.receive,
+    "dseries_end-1.0": dseries_end_1_0.Handler.receive,
+    "raw-1.0": raw_1_0.Handler.receive
+}
+
+send_handlers = {
+    "array-1.0": array_1_0.Handler.send,
+    "dheade-1.0": dheader_1_0.Handler.send,
+    "dimage-1.0": dimage_1_0.Handler.send,
+    "dseries_end-1.0": dseries_end_1_0.Handler.send,
+    "raw-1.0": raw_1_0.Handler.send
+}
+
 
 class Stream(object):
 
@@ -35,7 +56,6 @@ class Stream(object):
         self.address = None
 
         self.receiver = None
-        self.handlers = {}
 
     def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None):
         """
@@ -122,7 +142,7 @@ class Stream(object):
                 return message
 
             try:
-                handler = self.handlers[htype].receive
+                handler = receive_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
                 logger.warning('htype - ' + htype + ' -  not supported')
@@ -143,7 +163,7 @@ class Stream(object):
         return message
 
     def receive_raw(self, block=True):
-        message = self.receive(handler=self.handlers["raw_1_0"].receive, block=block)
+        message = self.receive(handler=receive_handlers["raw_1_0"], block=block)
         return message
 
     def send(self, message, send_more=False, block=True, as_json=False):
@@ -181,7 +201,7 @@ class Stream(object):
                 raise e
 
             try:
-                handler = self.handlers[htype].send
+                handler = send_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
                 logger.warning('htype - ' + htype + ' -  not supported')
@@ -257,30 +277,8 @@ class Message:
         self.data = data
 
 
-class DefaultHandlers(dict):
-    def __init__(self):
-        # super().__init__()
-        self.blacklist = {}
-
-    def __missing__(self, key):
-        try:
-            if key not in self.blacklist:
-                logger.info('Handler missing - try to load handler for - '+key)
-                module = __import__("mflow.handlers." + key.replace('.', '_').replace('-', '_'), fromlist=".")
-                handler = module.Handler
-                self[key] = handler
-                logger.info('Handler loaded')
-                return handler
-        except:
-            logger.warning('Cannot load handler for key '+key+' - blacklisting')
-            self.blacklist[key] = 1
-
-        raise KeyError(key)
-
-
 def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000):
     stream = Stream()
-    stream.handlers = DefaultHandlers()
     stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size, linger=linger)
     return stream
 
