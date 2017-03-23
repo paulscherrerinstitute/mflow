@@ -212,6 +212,8 @@ class Stream(object):
 
         try:
             handler(message, send=self.send, block=block)
+        except KeyboardInterrupt:
+            raise
         except:
             logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
             logger.warning('Unable to send message - skipping')
