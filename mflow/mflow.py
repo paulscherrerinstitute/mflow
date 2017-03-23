@@ -134,6 +134,8 @@ class Stream(object):
                 # not clear if this is needed
                 self.receiver.flush(receive_is_successful)
                 return message
+            except KeyboardInterrupt:
+                raise
             except:
                 logger.debug(sys.exc_info())
                 logger.warning('Unable to read header - skipping')
@@ -153,6 +155,8 @@ class Stream(object):
             if data:
                 receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
+        except KeyboardInterrupt:
+            raise
         except:
             logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
             logger.warning('Unable to decode message - skipping')
