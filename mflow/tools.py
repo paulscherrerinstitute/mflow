@@ -1,4 +1,5 @@
 import time
+from argparse import Namespace
 from collections import OrderedDict
 from collections import deque
 
@@ -56,28 +57,41 @@ class ThroughputStatistics(object):
     # Bytes to mega bytes conversion factor.
     MB_FACTOR = 1 / (10 ** 6)
 
-    def __init__(self, buffer, sampling_interval=0.2):
+    def __init__(self, buffer=None, namespace=None, sampling_interval=0.2):
         """
         Initialize the statistics class.
-        :param buffer: Circular buffer for saving statistics events.
+        :param buffer: Circular buffer for saving statistics events. Default: None.
         :type buffer: collections.deque
+        :param namespace: Namespace to use temporary variables. Default: None.
+        :type namespace: argparse.Namespace
         :param sampling_interval: Sampling interval for adding new statistic events.
         """
         self.sampling_interval = sampling_interval
-        self._buffer = buffer
+
+        # Use provided buffer or create a new one.
+        if buffer is None:
+            self._buffer = deque(maxlen=100)
+        else:
+            self._buffer = buffer
+
+        # Use provided namespace or create a new one.
+        if namespace is None:
+            self.n = Namespace()
+        else:
+            self.n = namespace
 
         # Collect the initial time in case you need to print the summary.
-        self.initial_time = time.time()
+        self.n.initial_time = time.time()
 
         # Keep track of the last statistics printed to the user.
-        self.last_sampled_statistics = {"total_bytes_received": 0,
-                                        "messages_received": 0,
-                                        "time": self.initial_time}
+        self.n.last_sampled_statistics = {"total_bytes_received": 0,
+                                          "messages_received": 0,
+                                          "time": self.n.initial_time}
 
         # Keep track of the last statistics received.
-        self.last_received_statistics = {"total_bytes_received": 0,
-                                         "messages_received": 0,
-                                         "time": self.initial_time}
+        self.n.last_received_statistics = {"total_bytes_received": 0,
+                                           "messages_received": 0,
+                                           "time": self.n.initial_time}
 
     def save_statistics(self, message_statistics):
         """
@@ -88,11 +102,11 @@ class ThroughputStatistics(object):
         current_time = time.time()
 
         # Save received statistics.
-        self.last_received_statistics["total_bytes_received"] = message_statistics.total_bytes_received
-        self.last_received_statistics["messages_received"] = message_statistics.messages_received
-        self.last_received_statistics["time"] = current_time
+        self.n.last_received_statistics["total_bytes_received"] = message_statistics.total_bytes_received
+        self.n.last_received_statistics["messages_received"] = message_statistics.messages_received
+        self.n.last_received_statistics["time"] = current_time
 
-        delta_time = current_time - self.last_sampled_statistics["time"]
+        delta_time = current_time - self.n.last_sampled_statistics["time"]
         # If the delta time is greater than the sampling rate, print the statistics.
         if delta_time > self.sampling_interval:
             self._save_statistics_to_buffer()
@@ -104,21 +118,21 @@ class ThroughputStatistics(object):
         """
         Calculate the data rate and print the statistics to the standard output.
         """
-        delta_time = self.last_received_statistics["time"] - self.last_sampled_statistics["time"]
+        delta_time = self.n.last_received_statistics["time"] - self.n.last_sampled_statistics["time"]
 
         # bytes/second in last interval.
-        data_rate = (self.last_received_statistics["total_bytes_received"] -
-                     self.last_sampled_statistics["total_bytes_received"]) / delta_time
+        data_rate = (self.n.last_received_statistics["total_bytes_received"] -
+                     self.n.last_sampled_statistics["total_bytes_received"]) / delta_time
 
         # messages/second in last interval.
-        message_rate = (self.last_received_statistics["messages_received"] -
-                        self.last_sampled_statistics["messages_received"]) / delta_time
+        message_rate = (self.n.last_received_statistics["messages_received"] -
+                        self.n.last_sampled_statistics["messages_received"]) / delta_time
 
         self._buffer.append({"message_rate": message_rate,
                              "data_rate": data_rate})
 
         # Update last printed statistics.
-        self.last_sampled_statistics.update(self.last_received_statistics)
+        self.n.last_sampled_statistics.update(self.n.last_received_statistics)
 
     def get_last_sampled_statistics(self):
         """
@@ -135,18 +149,18 @@ class ThroughputStatistics(object):
         Get aggregated statistics.
         :return: Dict with summary or {} if no statistics is available.
         """
-        delta_time = self.last_received_statistics["time"] - self.initial_time
+        delta_time = self.n.last_received_statistics["time"] - self.n.initial_time
         # Print summary if any messages were received.
         if delta_time > 0:
-            average_message_size = self.last_received_statistics["total_bytes_received"] / \
-                                   self.last_received_statistics["messages_received"]
+            average_message_size = self.n.last_received_statistics["total_bytes_received"] / \
+                                   self.n.last_received_statistics["messages_received"]
 
             statistics = {"total_elapsed_time": delta_time,
                           "average_message_size": average_message_size,
-                          "total_bytes_received": self.last_received_statistics["total_bytes_received"],
-                          "average_data_rate": self.last_received_statistics["total_bytes_received"] / delta_time,
-                          "messages_received": self.last_received_statistics["messages_received"],
-                          "average_message_rate": self.last_received_statistics["messages_received"] / delta_time}
+                          "total_bytes_received": self.n.last_received_statistics["total_bytes_received"],
+                          "average_data_rate": self.n.last_received_statistics["total_bytes_received"] / delta_time,
+                          "messages_received": self.n.last_received_statistics["messages_received"],
+                          "average_message_rate": self.n.last_received_statistics["messages_received"] / delta_time}
 
             return OrderedDict(sorted(statistics.items()))
 
@@ -166,7 +180,7 @@ class ThroughputStatistics(object):
         this events will be added to the statistics (but the sampling interval will not be honored in this case).
         :return: True if new statistic events were added, False otherwise.
         """
-        delta_time = self.last_received_statistics["time"] - self.last_sampled_statistics["time"]
+        delta_time = self.n.last_received_statistics["time"] - self.n.last_sampled_statistics["time"]
         # If the last received is not the same as the last printed statistics, process it.
         # Note: The sampling interval, when flushing, is not honored.
         if delta_time > 0:
@@ -185,8 +199,7 @@ class ThroughputStatisticsPrinter(object):
         Initiate the stream statistics printer.
         :param sampling_interval: Minimum sampling interval.
         """
-        statistics_queue = deque(maxlen=1)
-        self.statistics = ThroughputStatistics(statistics_queue, sampling_interval=sampling_interval)
+        self.statistics = ThroughputStatistics(sampling_interval=sampling_interval)
 
     def save_statistics(self, message_statistics):
         """
