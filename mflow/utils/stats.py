@@ -1,7 +1,7 @@
 import mflow
 import argparse
 
-from mflow.tools import StreamStatisticsPrinter
+from mflow.tools import ThroughputStatisticsPrinter
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     address = arguments.source
     mode = mflow.SUB if arguments.mode == 'sub' else mflow.PULL
     stream = mflow.connect(address, mode=mode, receive_timeout=1000)
-    statistics_printer = StreamStatisticsPrinter(sampling_interval=arguments.sampling_interval)
+    statistics_printer = ThroughputStatisticsPrinter(sampling_interval=arguments.sampling_interval)
 
     def dump(receiver):
         """
@@ -40,7 +40,7 @@ def main():
         while True:
             message = stream.receive(handler=dump)
             if message is not None:
-                statistics_printer.process_statistics(message.statistics)
+                statistics_printer.save_statistics(message.statistics)
     except KeyboardInterrupt:
         stream.disconnect()
         # Flush and Print summary.
