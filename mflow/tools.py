@@ -2,6 +2,7 @@ import time
 from argparse import Namespace
 from collections import OrderedDict
 from collections import deque
+from logging import getLogger
 
 
 class RoundRobinStrategy:
@@ -67,6 +68,7 @@ class ThroughputStatistics(object):
         :param sampling_interval: Sampling interval for adding new statistic events.
         """
         self.sampling_interval = sampling_interval
+        self._logger = getLogger(self.__class__.__name__)
 
         # Use provided buffer or create a new one.
         if buffer is None:
@@ -134,6 +136,10 @@ class ThroughputStatistics(object):
         # Update last printed statistics.
         self.n.last_sampled_statistics.update(self.n.last_received_statistics)
 
+        # Append statistics to logger.
+        self._logger.info("Data rate: {data_rate: >10.3f} MB/s    Message rate: {message_rate: >10.3f} Hz"
+                          .format(data_rate=data_rate * self.MB_FACTOR, message_rate=message_rate))
+
     def get_last_sampled_statistics(self):
         """
         Print the latest sampled statistics.
@@ -150,7 +156,7 @@ class ThroughputStatistics(object):
         :return: Dict with summary or {} if no statistics is available.
         """
         delta_time = self.n.last_received_statistics["time"] - self.n.initial_time
-        # Print summary if any messages were received.
+        # Get statistics if any message was received.
         if delta_time > 0:
             average_message_size = self.n.last_received_statistics["total_bytes_received"] / \
                                    self.n.last_received_statistics["messages_received"]
@@ -194,6 +200,7 @@ class ThroughputStatisticsPrinter(object):
     """
     Wrapper to save and display the stream statistics.
     """
+
     def __init__(self, sampling_interval=0.2):
         """
         Initiate the stream statistics printer.
