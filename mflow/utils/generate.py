@@ -1,3 +1,4 @@
+import json
 import mflow
 import argparse
 
@@ -20,18 +21,26 @@ def main():
 
     stream = mflow.connect(address, conn_type="bind", mode=mode)
 
+    header = {'htype': 'raw-1.0', 'type': 'int32', 'shape': [0, 0]}
     size_bytes = int(size*1024.0*1024.0)
     data = bytearray(size_bytes)
     # message_size_mb = (size*8)/1024.0/1024.0
 
     print('Sending messages of size %f MB' % size)
 
+    counter = 0
     while True:
         # Sending random data
         # stream.send(os.urandom(size * 8), send_more=False)  # Slow - cryptographically strong random numbers
         # stream.send(numpy.random.random(size), send_more=False)  # Fast - random numbers
+        header["frame"] = counter
+        stream.send(json.dumps(header).encode('utf-8'), send_more=True)
         stream.send(data, send_more=False)
+        counter += 1
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Terminated by user.")
