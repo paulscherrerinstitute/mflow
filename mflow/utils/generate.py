@@ -1,6 +1,6 @@
 import json
 
-from mflow.tools import ThroughputStatisticsPrinter, ThroughputStatistics
+from mflow.tools import ThroughputStatisticsPrinter
 
 import mflow
 import argparse
@@ -24,14 +24,13 @@ def main():
 
     stream = mflow.connect(address, conn_type="bind", mode=mode)
 
-    header = {'htype': 'raw-1.0', 'type': 'int32', 'shape': [0, 0]}
     size_bytes = int(size*1024.0*1024.0)
+    header = {'htype': 'raw-1.0', 'type': 'int32', 'shape': [1, size_bytes/4]}
     data = bytearray(size_bytes)
-    # message_size_mb = (size*8)/1024.0/1024.0
 
     print('Sending messages of size %f MB' % size)
 
-    statistics = ThroughputStatisticsPrinter(ThroughputStatistics())
+    statistics = ThroughputStatisticsPrinter()
     message_statistics = argparse.Namespace(total_bytes_received=0)
 
     counter = 0
