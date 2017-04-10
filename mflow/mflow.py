@@ -85,9 +85,9 @@ class Stream(object):
             else:
                 self.socket.bind(address)
                 logger.info("Bound to %s" % address)
-        except:
-            logger.error("Unable to connect to %s. Hint: check IP address. It must be something like tcp://127.0.0.1:40000." % address)
+        except Exception:
             logger.error("Full error: %s" % sys.exc_info()[1])
+            raise RuntimeError("Unable to connect/bind to %s" % address)
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
