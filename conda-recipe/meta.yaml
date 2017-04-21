@@ -1,6 +1,6 @@
 package:
     name: mflow
-    version: 0.0.18
+    version: 0.0.19
 source:
     path: ..
 
@@ -9,7 +9,6 @@ requirements:
         - python
         - setuptools
     run:
-        - python
         - pyzmq
 
 build:
