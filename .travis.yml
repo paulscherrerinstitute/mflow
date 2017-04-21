@@ -31,16 +31,11 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
-  # - rm -rf .condarc
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  # - conda update -q conda
-  # - conda info -a
   - conda config --add channels defaults
-  - conda config --show
-  - conda install numpy anaconda-client conda-build;
+  - conda update -q --all
+  - conda install conda-build anaconda-client
   # build
-  - ls -l
   - conda build conda-recipe
 
 script:
