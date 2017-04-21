@@ -12,7 +12,7 @@ requirements:
         - pyzmq
 
 build:
-  number: 3
+  # number: 3
   entry_points:
     - m_dump = mflow.utils.dump:main
     - m_replay = mflow.utils.replay:main
@@ -20,11 +20,11 @@ build:
     - m_split = mflow.utils.split:main
     - m_generate = mflow.utils.generate:main
 
-test:
-  source_files:
-    - mflow/tests/
-  requires:
-    - numpy
+# test:
+#   source_files:
+#     - mflow/tests/
+#   requires:
+#     - numpy
 
 about:
     home: https://github.com/datastreaming/mflow
