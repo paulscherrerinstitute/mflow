@@ -36,7 +36,7 @@ install:
   - conda update -q --all
   - conda install conda-build anaconda-client
   # build
-  - conda build conda-recipe --no-test
+  - conda build --no-test conda-recipe
 
 script:
   - echo "No test scripts to be run!"
