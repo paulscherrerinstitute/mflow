@@ -9,10 +9,11 @@ requirements:
         - python
         - setuptools
     run:
+        - python
         - pyzmq
 
 build:
-  # number: 3
+  number: 5
   entry_points:
     - m_dump = mflow.utils.dump:main
     - m_replay = mflow.utils.replay:main
