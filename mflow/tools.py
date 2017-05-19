@@ -1,8 +1,12 @@
+import threading
 import time
 from argparse import Namespace
 from collections import OrderedDict
 from collections import deque
 from logging import getLogger
+
+import zmq
+from zmq.utils.monitor import recv_monitor_message
 
 
 class RoundRobinStrategy:
@@ -265,3 +269,99 @@ class ThroughputStatisticsPrinter(object):
 
         if print_summary:
             self.print_summary()
+
+
+class SocketEventListener(object):
+    def __init__(self, callbacks, events=None):
+        """
+        Monitor the socket, receive ZMQ events associated with it.
+        :param events: Events to listen for.
+        """
+        if not events:
+            events = zmq.EVENT_ALL
+
+        self.monitor_listening = threading.Event()
+        self.monitor_thread = None
+
+        self.callbacks = callbacks
+        self.events = events
+
+    def start(self, socket):
+        """
+        Start the monitoring thread and socket.
+        :param socket: Socket to monitor.
+        """
+        # Start a thread only if it is not already running.
+        if self.monitor_listening.is_set():
+            return
+
+        # Setup monitor socket.
+        monitor_socket = socket.get_monitor_socket(events=self.events)
+        monitor_socket.RCVTIMEO = 100
+        self.monitor_listening.set()
+
+        def event_listener(monitor_listening):
+            while monitor_listening.is_set():
+                try:
+                    event = recv_monitor_message(monitor_socket)
+                    # The socket is closed, just stop listening now.
+                    if event["event"] == zmq.EVENT_CLOSED:
+                        monitor_listening.clear()
+
+                    self._notify_listeners(event)
+                # In case the receive cannot be completed before the timeout.
+                except zmq.Again:
+                    pass
+
+            # Cleanup monitor socket.
+            socket.disable_monitor()
+            monitor_socket.close()
+
+        self.monitor_thread = threading.Thread(target=event_listener, args=(self.monitor_listening,))
+        # In case someone does not call disconnect, this will stop the thread anyway.
+        self.monitor_thread.daemon = True
+        self.monitor_thread.start()
+
+    def stop(self):
+        """
+        Stop the monitoring thread.
+        """
+        self.monitor_listening.clear()
+
+        # Join a thread only it was started.
+        if self.monitor_thread:
+            self.monitor_thread.join()
+
+    def _notify_listeners(self, event):
+        for callback in self.callbacks:
+            callback(event)
+
+
+class ConnectionCountMonitor(object):
+    """
+    Monitor the socket for the number of connected clients.
+    Notify when the number of clients change.
+    """
+    def __init__(self, callback):
+        """
+        :param callback: Callback to call when the number of connected clients change.
+        """
+        self.callback = callback
+        self.client_counter = 0
+
+        # Notify the client that there are zero connections counted.
+        self.callback(self.client_counter)
+
+    def __call__(self, event):
+        event_mask = event["event"]
+        if event_mask == zmq.EVENT_ACCEPTED:
+            self.client_counter += 1
+        elif event_mask == zmq.EVENT_DISCONNECTED:
+            self.client_counter -= 1
+        else:
+            # We notify the callback only if the number of clients changed.
+            return
+
+        self.callback(self.client_counter)
+
+

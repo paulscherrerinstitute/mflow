@@ -1,3 +1,4 @@
+import threading
 import unittest
 import mflow
 import mflow.handlers.array_1_0
@@ -11,6 +12,7 @@ from multiprocessing import Process, Queue
 
 import logging
 
+from mflow.tools import ConnectionCountMonitor
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.DEBUG)
@@ -123,3 +125,93 @@ class BaseTests(unittest.TestCase):
         self.assertEqual(n, i, 'Received too few messages')
         self.assertEqual(n, stat, 'Stats reports wrong number messages received')
         self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+
+    def test_socket_monitor_sender(self):
+        socket_address = "tcp://127.0.0.1:9999"
+        n_connected_clients = []
+
+        def process_client_count_change(n_clients):
+            n_connected_clients.append(n_clients)
+
+        try:
+            sending_stream = mflow.Stream()
+            sending_stream.register_socket_monitor(ConnectionCountMonitor(process_client_count_change))
+            sending_stream.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH)
+            # Lets give it some time to settle.
+            time.sleep(1)
+
+            self.assertEqual(n_connected_clients[-1], 0, "Initial value of 0 not sent to callback.")
+
+            receiving_stream_1 = mflow.Stream()
+            receiving_stream_1.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
+            # Lets give it some time to process the event.
+            time.sleep(0.1)
+            self.assertEqual(n_connected_clients[-1], 1, "New client connection not reported.")
+
+            receiving_stream_2 = mflow.Stream()
+            receiving_stream_2.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
+            # Lets give it some time to process the event.
+            time.sleep(0.1)
+            self.assertEqual(n_connected_clients[-1], 2, "New client connection not reported.")
+
+            receiving_stream_2.disconnect()
+            # Lets give it some time to process the event.
+            time.sleep(0.1)
+            self.assertEqual(n_connected_clients[-1], 1, "Client disconnect not reported.")
+
+            receiving_stream_1.disconnect()
+            # Lets give it some time to process the event.
+            time.sleep(0.1)
+            self.assertEqual(n_connected_clients[-1], 0, "Client disconnect not reported.")
+
+            # Check overall client number report.
+            self.assertEqual(n_connected_clients, [0, 1, 2, 1, 0], "Wrong number of clients reported.")
+
+        finally:
+            sending_stream.disconnect()
+
+    def test_socket_monitor_dynamic(self):
+        socket_address = "tcp://127.0.0.1:9999"
+        n_connected_clients = []
+
+        def process_client_count_change(n_clients):
+            n_connected_clients.append(n_clients)
+
+        try:
+            sending_stream = mflow.Stream()
+            sending_stream.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH)
+
+            receiving_stream_1 = mflow.Stream()
+            receiving_stream_1.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
+            # Lets give it some time to forget about the receiver 1 connection event.
+            time.sleep(0.5)
+
+            socket_monitor = ConnectionCountMonitor(process_client_count_change)
+            sending_stream.register_socket_monitor(socket_monitor)
+            time.sleep(0.1)
+
+            receiving_stream_2 = mflow.Stream()
+            receiving_stream_2.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
+            # Lets give it some time to process the event.
+            time.sleep(0.1)
+
+            receiving_stream_1.disconnect()
+            receiving_stream_2.disconnect()
+            time.sleep(0.1)
+
+            sending_stream.remove_socket_monitor(socket_monitor)
+            # Wait for the RECV timeout to run out.
+            time.sleep(0.1)
+
+            # This should not be reported, because we removed the listener.
+            receiving_stream_3 = mflow.Stream()
+            receiving_stream_3.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
+            time.sleep(0.1)
+
+            # Check overall client number report.
+            self.assertEqual(n_connected_clients, [0, 1, 0, -1], "Wrong number of clients reported.")
+        finally:
+            # sending_stream.disconnect()
+            pass
+
+

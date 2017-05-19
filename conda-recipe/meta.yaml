@@ -1,6 +1,6 @@
 package:
     name: mflow
-    version: 0.0.19
+    version: 0.0.20
 source:
     path: ..
 
@@ -13,7 +13,7 @@ requirements:
         - pyzmq
 
 build:
-  number: 5
+  number: 0
   entry_points:
     - m_dump = mflow.utils.dump:main
     - m_replay = mflow.utils.replay:main

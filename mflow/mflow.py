@@ -5,6 +5,7 @@ from mflow.handlers import dseries_end_1_0
 from mflow.handlers import dimage_1_0
 from mflow.handlers import array_1_0
 from mflow.handlers import dheader_1_0
+from mflow.tools import SocketEventListener
 
 try:
     import ujson as json
@@ -57,6 +58,9 @@ class Stream(object):
 
         self.receiver = None
 
+        self._socket_monitors = []
+        self._socket_event_listener = SocketEventListener(self._socket_monitors)
+
     def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
@@ -85,6 +89,11 @@ class Stream(object):
             else:
                 self.socket.bind(address)
                 logger.info("Bound to %s" % address)
+
+            # Start the socket event listener, if there are monitors registered.
+            if self._socket_monitors:
+                self._socket_event_listener.start(self.socket)
+
         except Exception:
             logger.error("Full error: %s" % sys.exc_info()[1])
             raise RuntimeError("Unable to connect/bind to %s" % address)
@@ -99,19 +108,45 @@ class Stream(object):
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket)
 
+    def register_socket_monitor(self, monitor):
+        """
+        Register a new connection monitor.
+        :param monitor: Function to be called back at socket event.
+        """
+        if monitor not in self._socket_monitors:
+            self._socket_monitors.append(monitor)
+
+        # If the socket event listener is not running yet, but the socket is already connected, start it.
+        if not self._socket_event_listener.monitor_listening.is_set() and (self.socket and not self.socket.closed):
+            self._socket_event_listener.start(self.socket)
+
+    def remove_socket_monitor(self, callback_function):
+        """
+        Remove connection monitor from this socket.
+        :param callback_function: Callback function to remove.
+        """
+        if callback_function in self._socket_monitors:
+            self._socket_monitors.remove(callback_function)
+
+        # Stop the event listener if there are no more monitors.
+        if not self._socket_monitors:
+            self._socket_event_listener.stop()
+
     def disconnect(self):
 
         if self.socket.closed:
             logger.warning("Trying to close an already closed socket... ignore and return")
             return
         try:
+            # Stop the socket event listener.
+            self._socket_event_listener.stop()
+
             self.socket.disconnect(self.address)
             self.socket.close()
             logger.info("Disconnected")
         except:
             logger.debug(sys.exc_info()[1])
             logger.info("Unable to disconnect properly")
-
 
     def receive(self, handler=None, block=True):
         """
