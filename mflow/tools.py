@@ -8,8 +8,6 @@ from logging import getLogger
 import zmq
 from zmq.utils.monitor import recv_monitor_message
 
-NO_CLIENT_THREAD_POLL_INTERVAL = 1
-
 
 class RoundRobinStrategy:
     def __init__(self):
@@ -274,13 +272,22 @@ class ThroughputStatisticsPrinter(object):
 
 
 class SocketEventListener(object):
-    def __init__(self, callbacks, events=None):
+    DEFAULT_SOCKET_RECEIVE_TIMEOUT = 1
+
+    def __init__(self, callbacks, events=None, receive_timeout=None):
         """
         Monitor the socket, receive ZMQ events associated with it.
+        :param callbacks: List of callbacks to call.
         :param events: Events to listen for.
+        :param receive_timeout: Time in seconds to wait for socket receive.
         """
         if not events:
             events = zmq.EVENT_ALL
+
+        if receive_timeout is None:
+            receive_timeout = self.DEFAULT_SOCKET_RECEIVE_TIMEOUT
+        # Receive timeout is in milliseconds, but accepting seconds.
+        self.receive_timeout = int(receive_timeout * 1000)
 
         self.monitor_listening = threading.Event()
         self.monitor_thread = None
@@ -299,7 +306,7 @@ class SocketEventListener(object):
 
         # Setup monitor socket.
         monitor_socket = socket.get_monitor_socket(events=self.events)
-        monitor_socket.RCVTIMEO = 100
+        monitor_socket.setsockopt(zmq.RCVTIMEO, self.receive_timeout)
         self.monitor_listening.set()
 
         def event_listener(monitor_listening):
@@ -313,7 +320,8 @@ class SocketEventListener(object):
                     self._notify_listeners(event)
                 # In case the receive cannot be completed before the timeout.
                 except zmq.Again:
-                    pass
+                    # Heartbeat for listeners - we do not need an additional thread for time based listeners.
+                    self._notify_listeners(None)
 
             # Cleanup monitor socket.
             socket.disable_monitor()
@@ -355,14 +363,14 @@ class ConnectionCountMonitor(object):
         self.callback(self.client_counter)
 
     def __call__(self, event):
-        event_mask = event["event"]
-        if event_mask == zmq.EVENT_ACCEPTED:
-            self.client_counter += 1
-        elif event_mask == zmq.EVENT_DISCONNECTED:
-            self.client_counter -= 1
-        else:
-            # We notify the callback only if the number of clients changed.
-            return
+        if event is not None:
+            event_mask = event["event"]
+            if event_mask == zmq.EVENT_ACCEPTED:
+                self.client_counter += 1
+            elif event_mask == zmq.EVENT_DISCONNECTED:
+                self.client_counter -= 1
+            elif event_mask == zmq.EVENT_CLOSED:
+                self.client_counter = 0
 
         self.callback(self.client_counter)
 
@@ -379,28 +387,19 @@ def no_clients_timeout_notifier(no_client_action, no_client_timeout):
 
     def process_client_count_change(client_counter):
         nonlocal zero_clients_timestamp
+        current_time = time.time()
 
         # If the client counter is zero, and we haven't set the timeout timestamp yet.
         if client_counter == 0 and zero_clients_timestamp is None:
-            zero_clients_timestamp = time.time()
+            zero_clients_timestamp = current_time
         # If there are clients connected, but we have the zero clients timestamp set.
         elif client_counter > 0 and zero_clients_timestamp is not None:
             zero_clients_timestamp = None
 
-    def check_no_clients_timeout():
-        nonlocal zero_clients_timestamp
-
-        while True:
-            time.sleep(NO_CLIENT_THREAD_POLL_INTERVAL)
-            # Check for timeout only if there are zero clients connected.
-            if zero_clients_timestamp is not None:
-                # Timeout elapsed, panic!
-                if time.time() - zero_clients_timestamp > no_client_timeout:
-                    no_client_action()
-
-    # Start the timeout checking thread.
-    timeout_checker = threading.Thread(target=check_no_clients_timeout)
-    timeout_checker.daemon = True
-    timeout_checker.start()
+        # Check for timeout only if there are zero clients connected.
+        if zero_clients_timestamp is not None:
+            # Timeout elapsed, panic!
+            if current_time - zero_clients_timestamp > no_client_timeout:
+                no_client_action()
 
     return process_client_count_change

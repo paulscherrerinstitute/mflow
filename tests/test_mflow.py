@@ -174,8 +174,13 @@ class BaseTests(unittest.TestCase):
         socket_address = "tcp://127.0.0.1:9999"
         n_connected_clients = []
 
+        # Increase the polling interval, to make tests faster.
+        mflow.SocketEventListener.DEFAULT_SOCKET_RECEIVE_TIMEOUT = 0.1
+
         def process_client_count_change(n_clients):
-            n_connected_clients.append(n_clients)
+            # Append only value that changed.
+            if not n_connected_clients or n_connected_clients[-1] != n_clients:
+                n_connected_clients.append(n_clients)
 
         try:
             sending_stream = mflow.Stream()
@@ -184,7 +189,7 @@ class BaseTests(unittest.TestCase):
             receiving_stream_1 = mflow.Stream()
             receiving_stream_1.connect(address=socket_address, conn_type=mflow.CONNECT, mode=mflow.PULL)
             # Lets give it some time to forget about the receiver 1 connection event.
-            time.sleep(0.5)
+            time.sleep(0.2)
 
             socket_monitor = ConnectionCountMonitor(process_client_count_change)
             sending_stream.register_socket_monitor(socket_monitor)
@@ -218,7 +223,7 @@ class BaseTests(unittest.TestCase):
         socket_address = "tcp://127.0.0.1:9999"
         no_clients_triggered = False
         # Increase the polling interval, to make tests faster.
-        mflow.tools.NO_CLIENT_THREAD_POLL_INTERVAL = 0.1
+        mflow.SocketEventListener.DEFAULT_SOCKET_RECEIVE_TIMEOUT = 0.01
 
         def no_clients():
             nonlocal no_clients_triggered
@@ -230,7 +235,7 @@ class BaseTests(unittest.TestCase):
         self.assertFalse(no_clients_triggered, "Timeout triggered too fast.")
         time.sleep(0.2)
         self.assertFalse(no_clients_triggered, "Timeout triggered too fast.")
-        time.sleep(0.2)
+        time.sleep(0.3)
         self.assertTrue(no_clients_triggered, "Did not trigger timeout if no clients connected.")
 
         # Reset the test.
@@ -248,6 +253,4 @@ class BaseTests(unittest.TestCase):
         time.sleep(0.3)
         self.assertTrue(no_clients_triggered, "Callback did not re-trigger.")
 
-
-
-
+        server.disconnect()
