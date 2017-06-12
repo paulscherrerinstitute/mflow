@@ -214,4 +214,40 @@ class BaseTests(unittest.TestCase):
             # sending_stream.disconnect()
             pass
 
+    def test_no_client_monitor(self):
+        socket_address = "tcp://127.0.0.1:9999"
+        no_clients_triggered = False
+        # Increase the polling interval, to make tests faster.
+        mflow.tools.NO_CLIENT_THREAD_POLL_INTERVAL = 0.1
+
+        def no_clients():
+            nonlocal no_clients_triggered
+            no_clients_triggered = True
+
+        server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
+                               no_client_action=no_clients, no_client_timeout=0.3)
+
+        self.assertFalse(no_clients_triggered, "Timeout triggered too fast.")
+        time.sleep(0.2)
+        self.assertFalse(no_clients_triggered, "Timeout triggered too fast.")
+        time.sleep(0.2)
+        self.assertTrue(no_clients_triggered, "Did not trigger timeout if no clients connected.")
+
+        # Reset the test.
+        no_clients_triggered = False
+
+        # First client.
+        client_1 = mflow.connect(socket_address)
+        time.sleep(0.4)
+        self.assertFalse(no_clients_triggered, "Callback triggered even with connected clients.")
+        client_1.disconnect()
+
+        # Wait a bit and verify the triggering status.
+        time.sleep(0.1)
+        self.assertFalse(no_clients_triggered, "Timeout triggered too fast.")
+        time.sleep(0.3)
+        self.assertTrue(no_clients_triggered, "Callback did not re-trigger.")
+
+
+
 

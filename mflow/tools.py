@@ -8,6 +8,8 @@ from logging import getLogger
 import zmq
 from zmq.utils.monitor import recv_monitor_message
 
+NO_CLIENT_THREAD_POLL_INTERVAL = 1
+
 
 class RoundRobinStrategy:
     def __init__(self):
@@ -365,3 +367,40 @@ class ConnectionCountMonitor(object):
         self.callback(self.client_counter)
 
 
+def no_clients_timeout_notifier(no_client_action, no_client_timeout):
+    """
+    Call the provided no_client_action if the no_client_timeout elapsed without any client connected.
+    :param no_client_action: Callback action.
+    :param no_client_timeout: Time to wait without clients.
+    :return: Callback function for ConnectionCountMonitor constructor.
+    """
+    # Timestamp of the last transition to zero clients connected.
+    zero_clients_timestamp = None
+
+    def process_client_count_change(client_counter):
+        nonlocal zero_clients_timestamp
+
+        # If the client counter is zero, and we haven't set the timeout timestamp yet.
+        if client_counter == 0 and zero_clients_timestamp is None:
+            zero_clients_timestamp = time.time()
+        # If there are clients connected, but we have the zero clients timestamp set.
+        elif client_counter > 0 and zero_clients_timestamp is not None:
+            zero_clients_timestamp = None
+
+    def check_no_clients_timeout():
+        nonlocal zero_clients_timestamp
+
+        while True:
+            time.sleep(NO_CLIENT_THREAD_POLL_INTERVAL)
+            # Check for timeout only if there are zero clients connected.
+            if zero_clients_timestamp is not None:
+                # Timeout elapsed, panic!
+                if time.time() - zero_clients_timestamp > no_client_timeout:
+                    no_client_action()
+
+    # Start the timeout checking thread.
+    timeout_checker = threading.Thread(target=check_no_clients_timeout)
+    timeout_checker.daemon = True
+    timeout_checker.start()
+
+    return process_client_count_change

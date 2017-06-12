@@ -1,3 +1,6 @@
+from datetime import time
+from time import sleep
+
 import zmq
 
 from mflow.handlers import raw_1_0
@@ -5,7 +8,7 @@ from mflow.handlers import dseries_end_1_0
 from mflow.handlers import dimage_1_0
 from mflow.handlers import array_1_0
 from mflow.handlers import dheader_1_0
-from mflow.tools import SocketEventListener
+from mflow.tools import SocketEventListener, ConnectionCountMonitor, no_clients_timeout_notifier
 
 try:
     import ujson as json
@@ -318,9 +321,17 @@ class Message:
         self.data = data
 
 
-def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000):
+def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000,
+            no_client_action=None, no_client_timeout=10):
     stream = Stream()
-    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size, linger=linger)
+
+    # If no client action is specified, start monitor.
+    if no_client_action:
+        stream.register_socket_monitor(ConnectionCountMonitor(no_clients_timeout_notifier(no_client_action,
+                                                                                          no_client_timeout)))
+
+    stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size,
+                   linger=linger)
     return stream
 
 
