@@ -274,7 +274,7 @@ class ReceiveHandler:
 
     def header(self):
         flags = 0 if self.block else zmq.NOBLOCK
-        self.raw_header = self.socket.recv(flags=flags, copy=self.zmq_copy, track=self.zmq_track)
+        self.raw_header = self.socket.recv(flags=flags)
         return json.loads(self.raw_header.decode("utf-8"))
 
     def has_more(self):
