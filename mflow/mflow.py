@@ -64,7 +64,7 @@ class Stream(object):
         self._socket_monitors = []
         self._socket_event_listener = SocketEventListener(self._socket_monitors)
 
-    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None, copy=True, track=False):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None, copy=True):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
@@ -72,6 +72,7 @@ class Stream(object):
         :param receive_timeout: Receive timeout in milliseconds (-1 = infinite)
         :param queue_size:      Queue size
         :param linger:          Linger option -i.e. how long to keep message in memory at socket shutdown - in milliseconds (-1 infinite)
+        :param copy:            If False, allows to do zero-copy send and receive. It automatically sets the 0MQ track parameter to True
         :return:
         """
 
@@ -107,7 +108,7 @@ class Stream(object):
 
         self.address = address
         self.zmq_copy = copy
-        self.zmq_track = track
+        self.zmq_track = not copy
         
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
@@ -261,7 +262,7 @@ class Stream(object):
 
 class ReceiveHandler:
 
-    def __init__(self, socket, copy=True, track=False):
+    def __init__(self, socket, copy=True):
         self.socket = socket
 
         # Basic statistics
@@ -270,7 +271,7 @@ class ReceiveHandler:
         self.block = True
 
         self.zmq_copy = copy
-        self.zmq_track = track
+        self.zmq_track = not copy
 
     def header(self):
         flags = 0 if self.block else zmq.NOBLOCK
