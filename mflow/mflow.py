@@ -64,7 +64,7 @@ class Stream(object):
         self._socket_monitors = []
         self._socket_event_listener = SocketEventListener(self._socket_monitors)
 
-    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None, copy=True):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
@@ -72,6 +72,7 @@ class Stream(object):
         :param receive_timeout: Receive timeout in milliseconds (-1 = infinite)
         :param queue_size:      Queue size
         :param linger:          Linger option -i.e. how long to keep message in memory at socket shutdown - in milliseconds (-1 infinite)
+        :param copy:            If False, allows to do zero-copy send and receive. It automatically sets the 0MQ track parameter to True
         :return:
         """
 
@@ -106,7 +107,9 @@ class Stream(object):
             logger.info("Timeout set: %f" % receive_timeout)
 
         self.address = address
-
+        self.zmq_copy = copy
+        self.zmq_track = not copy
+        
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket)
@@ -196,9 +199,9 @@ class Stream(object):
         except KeyboardInterrupt:
             raise
         except:
-            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
             logger.warning('Unable to decode message - skipping')
-
+            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+            
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
 
@@ -220,7 +223,7 @@ class Stream(object):
             if as_json:
                 self.socket.send_json(message, flags)
             else:
-                self.socket.send(message, flags)
+                self.socket.send(message, flags, copy=self.zmq_copy, track=self.zmq_track)
         except zmq.Again as e:
             if not block:
                 pass
@@ -259,13 +262,16 @@ class Stream(object):
 
 class ReceiveHandler:
 
-    def __init__(self, socket):
+    def __init__(self, socket, copy=True):
         self.socket = socket
 
         # Basic statistics
         self.statistics = Statistics()
         self.raw_header = None
         self.block = True
+
+        self.zmq_copy = copy
+        self.zmq_track = not copy
 
     def header(self):
         flags = 0 if self.block else zmq.NOBLOCK
@@ -282,7 +288,7 @@ class ReceiveHandler:
                 self.raw_header = None
             else:
                 flags = 0 if self.block else zmq.NOBLOCK
-                raw = self.socket.recv(flags=flags)
+                raw = self.socket.recv(flags=flags, copy=self.zmq_copy, track=self.zmq_track)
 
             self.statistics.bytes_received += len(raw)
             if as_json:
@@ -296,7 +302,7 @@ class ReceiveHandler:
         # Clear remaining sub-messages
         while self.has_more():
             try:
-                self.socket.recv(flags=flags)
+                self.socket.recv(flags=flags, copy=self.zmq_copy, track=self.zmq_track)
                 logger.info('Skipping sub-message')
             except zmq.ZMQError:
                 pass
@@ -322,7 +328,7 @@ class Message:
 
 
 def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000,
-            no_client_action=None, no_client_timeout=10):
+            no_client_action=None, no_client_timeout=10, copy=True, track=False):
     stream = Stream()
 
     # If no client action is specified, start monitor.
@@ -331,7 +337,7 @@ def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive
                                                                                           no_client_timeout)))
 
     stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size,
-                   linger=linger)
+                   linger=linger, copy=copy, track=track)
     return stream
 
 
