@@ -1,5 +1,7 @@
 import threading
 import unittest
+from itertools import groupby
+
 import mflow
 import mflow.handlers.array_1_0
 
@@ -164,8 +166,11 @@ class BaseTests(unittest.TestCase):
             time.sleep(0.1)
             self.assertEqual(n_connected_clients[-1], 0, "Client disconnect not reported.")
 
+            # We need to filter the duplicate states - used as heartbeat for time counting.
+            processed_n_connected_clients = [x[0] for x in groupby(n_connected_clients)]
+
             # Check overall client number report.
-            self.assertEqual(n_connected_clients, [0, 1, 2, 1, 0], "Wrong number of clients reported.")
+            self.assertEqual(processed_n_connected_clients, [0, 1, 2, 1, 0], "Wrong number of clients reported.")
 
         finally:
             sending_stream.disconnect()

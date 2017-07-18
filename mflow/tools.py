@@ -8,6 +8,8 @@ from logging import getLogger
 import zmq
 from zmq.utils.monitor import recv_monitor_message
 
+_logger = getLogger(__name__)
+
 
 class RoundRobinStrategy:
     def __init__(self):
@@ -366,10 +368,13 @@ class ConnectionCountMonitor(object):
         if event is not None:
             event_mask = event["event"]
             if event_mask == zmq.EVENT_ACCEPTED:
+                _logger.debug("Client connected to socket.")
                 self.client_counter += 1
             elif event_mask == zmq.EVENT_DISCONNECTED:
+                _logger.debug("Client disconnected from socket.")
                 self.client_counter -= 1
             elif event_mask == zmq.EVENT_CLOSED:
+                _logger.debug("Socket was closed.")
                 self.client_counter = 0
 
         self.callback(self.client_counter)
