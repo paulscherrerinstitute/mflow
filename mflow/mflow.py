@@ -328,7 +328,7 @@ class Message:
 
 
 def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000,
-            no_client_action=None, no_client_timeout=10, copy=True, track=False):
+            no_client_action=None, no_client_timeout=10, copy=True):
     stream = Stream()
 
     # If no client action is specified, start monitor.
@@ -337,7 +337,7 @@ def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive
                                                                                           no_client_timeout)))
 
     stream.connect(address, conn_type=conn_type, mode=mode, receive_timeout=receive_timeout, queue_size=queue_size,
-                   linger=linger, copy=copy, track=track)
+                   linger=linger, copy=copy)
     return stream
 
 
