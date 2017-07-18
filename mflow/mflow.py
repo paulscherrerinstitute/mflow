@@ -178,8 +178,7 @@ class Stream(object):
             except KeyboardInterrupt:
                 raise
             except:
-                logger.debug(sys.exc_info())
-                logger.warning('Unable to read header - skipping')
+                logger.exception('Unable to read header - skipping')
                 # Clear remaining sub-messages if exist
                 self.receiver.flush(receive_is_successful)
                 return message
@@ -199,8 +198,7 @@ class Stream(object):
         except KeyboardInterrupt:
             raise
         except:
-            logger.warning('Unable to decode message - skipping')
-            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+            logger.exception('Unable to decode message - skipping')
             
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
