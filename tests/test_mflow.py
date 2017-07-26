@@ -259,3 +259,26 @@ class BaseTests(unittest.TestCase):
         self.assertTrue(no_clients_triggered, "Callback did not re-trigger.")
 
         server.disconnect()
+
+    def test_send_timeout(self):
+
+        send_timeout = 100
+
+        def test_timeout():
+            socket_address = "tcp://127.0.0.1:9999"
+            server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
+                                   send_timeout=send_timeout)
+
+            server.send(message={"valid": True}, block=True, as_json=True)
+
+        # Run it in a separate process, so we can terminate it if needed.
+        process = Process(target=test_timeout)
+        process.start()
+
+        # Lets wait a bit more.
+        time.sleep(send_timeout/1000 + 0.5)
+
+        is_process_alive = process.is_alive()
+        process.terminate()
+
+        self.assertFalse(is_process_alive, "Process should die automatically.")
