@@ -64,7 +64,8 @@ class Stream(object):
         self._socket_monitors = []
         self._socket_event_listener = SocketEventListener(self._socket_monitors)
 
-    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000, context=None, copy=True):
+    def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000,
+                context=None, copy=True, send_timeout=None):
         """
         :param address:         Address to connect to, in the form of protocol://IP_or_Hostname:port, e.g.: tcp://127.0.0.1:40000
         :param conn_type:       Connection type - connect or bind to socket
@@ -73,6 +74,7 @@ class Stream(object):
         :param queue_size:      Queue size
         :param linger:          Linger option -i.e. how long to keep message in memory at socket shutdown - in milliseconds (-1 infinite)
         :param copy:            If False, allows to do zero-copy send and receive. It automatically sets the 0MQ track parameter to True
+        :param send_timeout:    Send timeout in milliseconds (-1 = infinite)
         :return:
         """
 
@@ -104,7 +106,11 @@ class Stream(object):
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
-            logger.info("Timeout set: %f" % receive_timeout)
+            logger.info("Receive timeout set: %f" % receive_timeout)
+
+        if send_timeout:
+            self.socket.SNDTIMEO = send_timeout
+            logger.info("Send timeout set: %f" % send_timeout)
 
         self.address = address
         self.zmq_copy = copy
