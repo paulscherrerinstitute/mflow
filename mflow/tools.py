@@ -406,5 +406,7 @@ def no_clients_timeout_notifier(no_client_action, no_client_timeout):
             # Timeout elapsed, panic!
             if current_time - zero_clients_timestamp > no_client_timeout:
                 no_client_action()
+                # Reset the timer (do not trigger the action multiple times).
+                zero_clients_timestamp = current_time
 
     return process_client_count_change
