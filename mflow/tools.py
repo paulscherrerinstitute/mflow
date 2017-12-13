@@ -274,7 +274,7 @@ class ThroughputStatisticsPrinter(object):
 
 
 class SocketEventListener(object):
-    DEFAULT_SOCKET_RECEIVE_TIMEOUT = 1
+    DEFAULT_SOCKET_RECEIVE_TIMEOUT = 0.1
 
     def __init__(self, callbacks, events=None, receive_timeout=None):
         """
