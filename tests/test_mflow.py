@@ -38,7 +38,7 @@ def sender(address, n, q, block=True, copy=True):
             q.put({'bytes_sent': data_size, 'total_sent': total_size})
 
             # Send out every 10ms
-            time.sleep(0.2)
+            time.sleep(0.01)
 
         except KeyboardInterrupt:
             break
