@@ -118,7 +118,7 @@ class Stream(object):
         
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
-            self.receiver = ReceiveHandler(self.socket)
+            self.receiver = ReceiveHandler(self.socket, copy=copy)
 
     def register_socket_monitor(self, monitor):
         """
@@ -296,8 +296,18 @@ class ReceiveHandler:
 
             self.statistics.bytes_received += len(raw)
             if as_json:
+                # non-copying recv returns a Frame object
+                # use Frame.bytes field will incur a copy, but without causing
+                # significant overhead since json header is of small size
+                if isinstance(raw, zmq.Frame):
+                    raw = raw.bytes
                 return json.loads(raw.decode("utf-8"))
-            return raw
+            else:
+                # non-copying recv returns a Frame object
+                # use Frame.buffer interface (read-only) to avoid extra copying
+                if isinstance(raw, zmq.Frame):
+                    raw = raw.buffer
+                return raw
         except zmq.ZMQError:
             return None
 

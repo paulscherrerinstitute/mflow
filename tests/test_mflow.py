@@ -20,8 +20,8 @@ logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.DEBUG)
 
 
-def sender(address, n, q, block=True):
-    stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, queue_size=100, )
+def sender(address, n, q, block=True, copy=True):
+    stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, queue_size=100, copy=copy)
     data = np.ones(10, dtype=np.int32)
     data_size = len(data.tobytes())
 
@@ -38,7 +38,7 @@ def sender(address, n, q, block=True):
             q.put({'bytes_sent': data_size, 'total_sent': total_size})
 
             # Send out every 10ms
-            time.sleep(0.2)
+            time.sleep(0.01)
 
         except KeyboardInterrupt:
             break
@@ -47,8 +47,8 @@ def sender(address, n, q, block=True):
     return
 
 
-def receiver(address, n, q, block=True):
-    stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, queue_size=100, )
+def receiver(address, n, q, block=True, copy=True):
+    stream = mflow.connect(address, conn_type=mflow.CONNECT, mode=mflow.PULL, queue_size=100, copy=copy)
     i = 0
     while i < n:
         message = stream.receive(block=block)
@@ -79,6 +79,35 @@ class BaseTests(unittest.TestCase):
         time.sleep(0.1)
         q2 = Queue()
         r = Process(target=receiver, args=(self.address, n, q2, False))
+        r.start()
+
+        s.join()
+        time.sleep(1)
+        r.terminate()
+        i = 0
+        stat = 0
+        while not q2.empty():
+            data = q2.get()
+            i = data["counter"]
+            stat = data["stat"]
+            total_recv = data["total_sent"]
+        while not q.empty():
+            data = q.get()
+            total_size = data["total_sent"]
+
+        self.assertEqual(n, i, 'Received too few messages')
+        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
+        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+
+    def test_push_pull_recv_nocopy(self):
+        n = 10
+        q = Queue()
+        s = Process(target=sender, args=(self.address, n, q, True, False))
+        s.start()
+
+        time.sleep(0.1)
+        q2 = Queue()
+        r = Process(target=receiver, args=(self.address, n, q2, True, False))
         r.start()
 
         s.join()
