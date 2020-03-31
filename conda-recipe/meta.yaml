@@ -8,12 +8,15 @@ requirements:
     build:
         - python
         - setuptools
+        - pip
     run:
         - python
         - pyzmq
 
 build:
-  number: 1
+  noarch: python
+  number: 2
+  script: python -m pip install --no-deps --ignore-installed .
   entry_points:
     - m_dump = mflow.utils.dump:main
     - m_replay = mflow.utils.replay:main
