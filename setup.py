@@ -4,7 +4,7 @@
 from setuptools import setup
 
 setup(name='mflow',
-      version='0.1.0',
+      version='0.2.0',
       description='Utility library for ZMQ data streaming',
       author='Paul Scherrer Institute',
       license='GNU GPLv3',
