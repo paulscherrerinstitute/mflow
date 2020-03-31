@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/datastreaming/mflow.svg?branch=master)](https://travis-ci.org/datastreaming/mflow) [![Build status](https://ci.appveyor.com/api/projects/status/tas7986wilnm4090?svg=true)](https://ci.appveyor.com/project/simongregorebner/mflow)
+[![Build Status](https://travis-ci.org/paulscherrerinstitute/mflow.svg?branch=master)](https://travis-ci.org/paulscherrerinstitute/mflow) [![Build status](https://ci.appveyor.com/api/projects/status/tas7986wilnm4090?svg=true)](https://ci.appveyor.com/project/simongregorebner/mflow)
 
 # Overview
 __mflow__ facilitates the handling of ZMQ data streams. It provides basic accounting and statistics on messages
