@@ -88,26 +88,26 @@ class Stream:
         try:
             if conn_type == CONNECT:
                 self.socket.connect(address)
-                logger.info("Connected to %s" % address)
+                logger.info("Connected to %s", address)
             else:
                 self.socket.bind(address)
-                logger.info("Bound to %s" % address)
+                logger.info("Bound to %s", address)
 
             # Start the socket event listener, if there are monitors registered.
             if self._socket_monitors:
                 self._socket_event_listener.start(self.socket)
 
         except Exception:
-            logger.error("Full error: %s" % sys.exc_info()[1])
+            logger.error("Full error: %s", sys.exc_info()[1])
             raise RuntimeError("Unable to connect/bind to %s" % address)
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
-            logger.info("Receive timeout set: %f" % receive_timeout)
+            logger.info("Receive timeout set: %f", receive_timeout)
 
         if send_timeout:
             self.socket.SNDTIMEO = send_timeout
-            logger.info("Send timeout set: %f" % send_timeout)
+            logger.info("Send timeout set: %f", send_timeout)
 
         self.address = address
         self.zmq_copy = copy
@@ -196,7 +196,7 @@ class Stream:
                 handler = receive_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
-                logger.warning("htype - " + htype + " -  not supported")
+                logger.warning("htype - %s -  not supported", htype)
 
         try:
             data = handler(self.receiver)
@@ -256,14 +256,14 @@ class Stream:
                 handler = send_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
-                logger.warning("htype - " + htype + " -  not supported")
+                logger.warning("htype - %s -  not supported", htype)
 
         try:
             handler(message, send=self.send, block=block)
         except KeyboardInterrupt:
             raise
         except:
-            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+            logger.debug("%s%s", sys.exc_info()[0], sys.exc_info()[1])
             logger.warning("Unable to send message - skipping")
 
 
