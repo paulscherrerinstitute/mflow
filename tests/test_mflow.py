@@ -250,8 +250,8 @@ class BaseTests(unittest.TestCase):
             # Check overall client number report.
             self.assertEqual(n_connected_clients, [0, 1, 0, -1], "Wrong number of clients reported.")
         finally:
-            # sending_stream.disconnect()
-            pass
+            receiving_stream_3.disconnect()
+            sending_stream.disconnect()
 
     def test_no_client_monitor(self):
         socket_address = "tcp://127.0.0.1:9999"
@@ -294,11 +294,14 @@ class BaseTests(unittest.TestCase):
         send_timeout = 100
 
         def test_timeout():
-            socket_address = "tcp://127.0.0.1:9999"
-            server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
-                                   send_timeout=send_timeout)
+            try:
+                socket_address = "tcp://127.0.0.1:9999"
+                server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
+                                    send_timeout=send_timeout)
 
-            server.send(message={"valid": True}, block=True, as_json=True)
+                server.send(message={"valid": True}, block=True, as_json=True)
+            except:
+                server.disconnect()
 
         # Run it in a separate process, so we can terminate it if needed.
         process = Process(target=test_timeout)
