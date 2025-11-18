@@ -115,7 +115,7 @@ class Stream(object):
         self.address = address
         self.zmq_copy = copy
         self.zmq_track = not copy
-        
+
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket, copy=copy)
@@ -205,7 +205,7 @@ class Stream(object):
             raise
         except:
             logger.exception('Unable to decode message - skipping')
-            
+
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
 
