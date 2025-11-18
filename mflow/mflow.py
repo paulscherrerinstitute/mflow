@@ -97,9 +97,9 @@ class Stream:
             if self._socket_monitors:
                 self._socket_event_listener.start(self.socket)
 
-        except Exception:
+        except Exception as e:
             logger.error("Full error: %s", sys.exc_info()[1])
-            raise RuntimeError("Unable to connect/bind to %s" % address)
+            raise RuntimeError("Unable to connect/bind to %s" % address) from e
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
