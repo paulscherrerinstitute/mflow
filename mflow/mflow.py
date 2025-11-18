@@ -153,8 +153,12 @@ class Stream(object):
             # Stop the socket event listener.
             self._socket_event_listener.stop()
 
-            self.socket.disconnect(self.address)
-            self.socket.close()
+            # Even if disconnect fails, we need to close.
+            try:
+                self.socket.disconnect(self.address)
+            finally:
+                self.socket.close()
+
             logger.info("Disconnected")
         except:
             logger.debug(sys.exc_info()[1])
