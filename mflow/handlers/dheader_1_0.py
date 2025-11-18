@@ -8,7 +8,7 @@ class Handler:
     @staticmethod
     def receive(receiver):
         header = receiver.next(as_json=True)
-        return_value = dict()
+        return_value = {}
         return_value["header"] = header
 
         header_detail = header["header_detail"]
