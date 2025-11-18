@@ -80,8 +80,10 @@ class Stream(object):
 
         if not context:
             self.context = zmq.Context()
+            self._context_is_owned = True
         else:
             self.context = context
+            self._context_is_owned = False
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
             self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
@@ -158,6 +160,8 @@ class Stream(object):
                 self.socket.disconnect(self.address)
             finally:
                 self.socket.close()
+                if self._context_is_owned:
+                    self.context.term()
 
             logger.info("Disconnected")
         except:
