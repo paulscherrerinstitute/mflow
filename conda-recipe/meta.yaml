@@ -1,17 +1,15 @@
+{% set data = load_setup_py_data() %}
+
 package:
     name: mflow
-    version: 0.2.0
+    version: {{ data["version"] }}
+
+about:
+   home: {{ data["url"] }}
+   summary: {{ data["description"] }}
+
 source:
     path: ..
-
-requirements:
-    build:
-        - python
-        - setuptools
-        - pip
-    run:
-        - python
-        - pyzmq
 
 build:
   noarch: python
@@ -24,12 +22,18 @@ build:
     - m_split = mflow.utils.split:main
     - m_generate = mflow.utils.generate:main
 
+requirements:
+    build:
+        - python >=3.1
+        - setuptools
+        - pip
+    run:
+        - python >=3.1
+        - pyzmq
+
 test:
   requires:
     - numpy
 #   source_files:
 #     - mflow/tests/
 
-about:
-    home: https://github.com/datastreaming/mflow
-    summary: "mflow library."
