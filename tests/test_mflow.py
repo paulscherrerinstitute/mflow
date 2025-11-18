@@ -314,3 +314,6 @@ class BaseTests(unittest.TestCase):
         process.terminate()
 
         self.assertFalse(is_process_alive, "Process should die automatically.")
+
+
+

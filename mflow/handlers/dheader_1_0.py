@@ -78,3 +78,6 @@ class Handler:
 
         if has_appendix:
             send(json.dumps(message["appendix"]).encode(), send_more=False, block=block)
+
+
+

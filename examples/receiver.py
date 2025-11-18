@@ -24,3 +24,6 @@ while True:
         print(message.statistics.messages_received)
 
 stream.disconnect()
+
+
+

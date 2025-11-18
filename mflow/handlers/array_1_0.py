@@ -49,3 +49,6 @@ class Handler:
 
 def get_image(raw_data, dtype, shape):
     return numpy.frombuffer(raw_data, dtype=dtype).reshape(shape)
+
+
+
