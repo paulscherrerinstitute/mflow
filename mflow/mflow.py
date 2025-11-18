@@ -51,6 +51,7 @@ class Stream:
     def __init__(self):
 
         self.context = None
+        self._context_is_owned = False
         self.socket = None
         self.address = None
 
