@@ -3,6 +3,8 @@ import signal
 
 import mflow
 
+
+#TODO: globals?
 counter = 0
 folder = None
 skip_from_message = None
@@ -78,7 +80,7 @@ def main():
     stream = mflow.connect(address, mode=mode)
 
     # Signal handling
-    global receive_more
+    global receive_more #TODO: is this correct?
     receive_more = True
 
     def stop(*args):

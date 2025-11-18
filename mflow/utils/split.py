@@ -68,7 +68,7 @@ def main():
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description="Stream dump utility")
+    parser = argparse.ArgumentParser(description="Stream split utility")
 
     parser.add_argument("-c", "--config", help="Configuration file")
 
@@ -97,7 +97,7 @@ def main():
     # Info: By here splitter and input_stream needs to be specified
 
     # Signal handling
-    global receive_more
+    global receive_more #TODO: is this correct?
     receive_more = True
 
     def stop(*args):
