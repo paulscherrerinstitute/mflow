@@ -56,7 +56,7 @@ class Merge:
             stream.disconnect()
 
 
-class ThroughputStatistics(object):
+class ThroughputStatistics:
     """
     Utility to calculate the stream throughput based on the mflow statistics.
     """
@@ -201,7 +201,7 @@ class ThroughputStatistics(object):
         return False
 
 
-class ThroughputStatisticsPrinter(object):
+class ThroughputStatisticsPrinter:
     """
     Wrapper to save and display the stream statistics.
     """
@@ -272,7 +272,7 @@ class ThroughputStatisticsPrinter(object):
             self.print_summary()
 
 
-class SocketEventListener(object):
+class SocketEventListener:
     DEFAULT_SOCKET_RECEIVE_TIMEOUT = 0.1
 
     def __init__(self, callbacks, events=None, receive_timeout=None):
@@ -348,7 +348,7 @@ class SocketEventListener(object):
             callback(event)
 
 
-class ConnectionCountMonitor(object):
+class ConnectionCountMonitor:
     """
     Monitor the socket for the number of connected clients.
     Notify when the number of clients change.

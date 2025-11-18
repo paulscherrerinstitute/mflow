@@ -48,7 +48,7 @@ send_handlers = {
 }
 
 
-class Stream(object):
+class Stream:
 
     def __init__(self):
 
