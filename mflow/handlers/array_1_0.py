@@ -19,13 +19,13 @@ class Handler:
         while receiver.has_more():
             raw_data = receiver.next()
             if raw_data:
-                data.append(get_image(raw_data, header['type'], header['shape']))
+                data.append(get_image(raw_data, header["type"], header["shape"]))
             else:
                 data.append(None)
 
         if header or data:
-            return_value = {'header': header,
-                            'data': data}
+            return_value = {"header": header,
+                            "data": data}
 
         return return_value
 

@@ -21,13 +21,13 @@ import sys
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
-formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+formatter = logging.Formatter("[%(asctime)s][%(name)s][%(levelname)s] %(message)s")
 
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-CONNECT = 'connect'
-BIND = 'bind'
+CONNECT = "connect"
+BIND = "bind"
 
 PUB = zmq.PUB
 SUB = zmq.SUB
@@ -86,7 +86,7 @@ class Stream(object):
             self._context_is_owned = False
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
-            self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
+            self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         self.socket.setsockopt(zmq.LINGER, linger)
         self.socket.set_hwm(queue_size)
@@ -192,7 +192,7 @@ class Stream(object):
             except KeyboardInterrupt:
                 raise
             except:
-                logger.exception('Unable to read header - skipping')
+                logger.exception("Unable to read header - skipping")
                 # Clear remaining sub-messages if exist
                 self.receiver.flush(receive_is_successful)
                 return message
@@ -201,7 +201,7 @@ class Stream(object):
                 handler = receive_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
-                logger.warning('htype - ' + htype + ' -  not supported')
+                logger.warning("htype - " + htype + " -  not supported")
 
         try:
             data = handler(self.receiver)
@@ -212,7 +212,7 @@ class Stream(object):
         except KeyboardInterrupt:
             raise
         except:
-            logger.exception('Unable to decode message - skipping')
+            logger.exception("Unable to decode message - skipping")
 
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
@@ -253,7 +253,7 @@ class Stream(object):
                 htype = message["header"]["htype"]
             except Exception as e:
                 logger.debug(sys.exc_info())
-                logger.warning('Unable to read header - skipping')
+                logger.warning("Unable to read header - skipping")
                 # Clear remaining sub-messages if exist
                 raise e
 
@@ -261,7 +261,7 @@ class Stream(object):
                 handler = send_handlers[htype]
             except:
                 logger.debug(sys.exc_info()[1])
-                logger.warning('htype - ' + htype + ' -  not supported')
+                logger.warning("htype - " + htype + " -  not supported")
 
         try:
             handler(message, send=self.send, block=block)
@@ -269,7 +269,7 @@ class Stream(object):
             raise
         except:
             logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
-            logger.warning('Unable to send message - skipping')
+            logger.warning("Unable to send message - skipping")
 
 
 class ReceiveHandler:
@@ -325,7 +325,7 @@ class ReceiveHandler:
         while self.has_more():
             try:
                 self.socket.recv(flags=flags, copy=self.zmq_copy, track=self.zmq_track)
-                logger.info('Skipping sub-message')
+                logger.info("Skipping sub-message")
             except zmq.ZMQError:
                 pass
 
@@ -369,16 +369,16 @@ def disconnect(stream):
 
 def main():
     # Configuration logging
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(name)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(name)s - %(message)s")
 
-    stream = connect('tcp://sf-lc:9999')
+    stream = connect("tcp://sf-lc:9999")
     while True:
         message = stream.receive()
-        print('Messages received: %d' % message.statistics.messages_received)
+        print("Messages received: %d" % message.statistics.messages_received)
 
     stream.disconnect()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

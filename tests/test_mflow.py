@@ -29,13 +29,13 @@ def sender(address, n, q, block=True, copy=True):
     total_size = 0
     while i < n:
         try:
-            header = {'htype': 'array-1.0', 'type': 'int32', 'shape': [10, ], 'frame': i}
-            stream.send(json.dumps(header).encode('utf-8'), send_more=True, block=block)
+            header = {"htype": "array-1.0", "type": "int32", "shape": [10, ], "frame": i}
+            stream.send(json.dumps(header).encode("utf-8"), send_more=True, block=block)
             stream.send(data.tobytes(), block=block)
             i += 1
             total_size += data_size
-            total_size += len(json.dumps(header).encode('utf-8'))
-            q.put({'bytes_sent': data_size, 'total_sent': total_size})
+            total_size += len(json.dumps(header).encode("utf-8"))
+            q.put({"bytes_sent": data_size, "total_sent": total_size})
 
             # Send out every 10ms
             time.sleep(0.01)
@@ -95,9 +95,9 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
 
     def test_push_pull_recv_nocopy(self):
         n = 10
@@ -124,9 +124,9 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
 
     def test_push_pull_recv(self):
         n = 10
@@ -153,9 +153,9 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
 
     def test_socket_monitor_sender(self):
         socket_address = "tcp://127.0.0.1:9999"

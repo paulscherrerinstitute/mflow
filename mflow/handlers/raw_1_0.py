@@ -18,8 +18,8 @@ class Handler:
                 data.append(None)
 
         if header or data:
-            return_value = {'header': header,
-                            'data': data}
+            return_value = {"header": header,
+                            "data": data}
 
         return return_value
 

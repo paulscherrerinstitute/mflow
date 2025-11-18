@@ -6,7 +6,7 @@ class Handler:
     @staticmethod
     def receive(receiver):
         header = receiver.next(as_json=True)
-        return {'header': header}
+        return {"header": header}
 
     @staticmethod
     def send(message, send, block=True):

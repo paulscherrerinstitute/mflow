@@ -67,17 +67,17 @@ def main():
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description='Stream dump utility')
+    parser = argparse.ArgumentParser(description="Stream dump utility")
 
-    parser.add_argument('-c', '--config', help='Configuration file')
+    parser.add_argument("-c", "--config", help="Configuration file")
 
-    parser.add_argument('source', type=str, nargs='?', help='Source address - format "tcp://<address>:<port>"')
-    parser.add_argument('streams', type=str, nargs='*', help='Streams to generate - "tcp://<address>:<port>"')
+    parser.add_argument("source", type=str, nargs="?", help='Source address - format "tcp://<address>:<port>"')
+    parser.add_argument("streams", type=str, nargs="*", help='Streams to generate - "tcp://<address>:<port>"')
 
     arguments = parser.parse_args()
 
     if arguments.config:
-        print('config')
+        print("config")
         (input_stream, splitter) = load_configuration(arguments.config)
     elif arguments.source and arguments.streams:
         streams_to_generate = arguments.streams
@@ -136,25 +136,25 @@ def load_configuration(filename):
         configuration = json.load(file_handle)
 
     # Construct stream source
-    address = configuration['source']['address']
+    address = configuration["source"]["address"]
 
-    if re.match('tcp://\\*:.*', address):
+    if re.match("tcp://\\*:.*", address):
         connection_type = mflow.BIND
     else:
         connection_type = mflow.CONNECT
 
     mode = mflow.PULL
-    if 'mode' in configuration['source']:
-        if configuration['source']['mode'].lower() == 'pull':
+    if "mode" in configuration["source"]:
+        if configuration["source"]["mode"].lower() == "pull":
             mode = mflow.PULL
-        elif configuration['source']['mode'].lower() == 'sub':
+        elif configuration["source"]["mode"].lower() == "sub":
             mode = mflow.SUB
         else:
-            raise Exception('Unsupported mode [%s] for source [%s]' % (configuration['source']['mode'], configuration['source']))
+            raise Exception("Unsupported mode [%s] for source [%s]" % (configuration["source"]["mode"], configuration["source"]))
 
     queue_size = 100
-    if 'queue_size' in configuration['source']:
-        queue_size = configuration['source']['queue_size']
+    if "queue_size" in configuration["source"]:
+        queue_size = configuration["source"]["queue_size"]
 
     input_stream = mflow.connect(address, mode=mode, conn_type=connection_type, queue_size=queue_size)
 
@@ -162,29 +162,29 @@ def load_configuration(filename):
     output_streams = []
     output_filters = []
     use_filter = False
-    for stream in configuration['streams']:
-        address = stream['address']
+    for stream in configuration["streams"]:
+        address = stream["address"]
 
-        if re.match('tcp://\\*:.*', address):
+        if re.match("tcp://\\*:.*", address):
             connection_type = mflow.BIND
         else:
             connection_type = mflow.CONNECT
 
         mode = mflow.PUSH
-        if 'mode' in stream:
-            if stream['mode'].lower() == 'push':
+        if "mode" in stream:
+            if stream["mode"].lower() == "push":
                 mode = mflow.PUSH
-            elif stream['mode'].lower() == 'pub':
+            elif stream["mode"].lower() == "pub":
                 mode = mflow.PUB
             else:
-                raise Exception('Unsupported mode [%s] for stream [%s]' % (stream['mode'], stream))
+                raise Exception("Unsupported mode [%s] for stream [%s]" % (stream["mode"], stream))
 
         queue_size = 100
-        if 'queue_size' in stream:
-            queue_size = stream['queue_size']
+        if "queue_size" in stream:
+            queue_size = stream["queue_size"]
 
-        if 'modulo' in stream:
-            output_filters.append(ModuloFilter(int(stream['modulo'])))
+        if "modulo" in stream:
+            output_filters.append(ModuloFilter(int(stream["modulo"])))
             use_filter = True
         else:
             output_filters.append(None)
@@ -197,5 +197,5 @@ def load_configuration(filename):
         return input_stream, Splitter(output_streams)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -5,17 +5,17 @@ from mflow.tools import ThroughputStatisticsPrinter
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Stream statistic utility')
-    parser.add_argument('source', type=str, help='Source address - format "tcp://<address>:<port>"')
-    parser.add_argument('-m', '--mode', default='pull', choices=['pull', 'sub'], type=str,
-                        help='Communication mode - either pull (default) or sub')
-    parser.add_argument('-i', "--sampling_interval", type=float, default=0.5,
+    parser = argparse.ArgumentParser(description="Stream statistic utility")
+    parser.add_argument("source", type=str, help='Source address - format "tcp://<address>:<port>"')
+    parser.add_argument("-m", "--mode", default="pull", choices=["pull", "sub"], type=str,
+                        help="Communication mode - either pull (default) or sub")
+    parser.add_argument("-i", "--sampling_interval", type=float, default=0.5,
                         help="Interval in seconds at which to sample the stream.\n"
                              "If zero, every packet will be sampled.")
     arguments = parser.parse_args()
 
     address = arguments.source
-    mode = mflow.SUB if arguments.mode == 'sub' else mflow.PULL
+    mode = mflow.SUB if arguments.mode == "sub" else mflow.PULL
     stream = mflow.connect(address, mode=mode, receive_timeout=1000)
     statistics_printer = ThroughputStatisticsPrinter(sampling_interval=arguments.sampling_interval)
 
@@ -47,5 +47,5 @@ def main():
         statistics_printer.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
