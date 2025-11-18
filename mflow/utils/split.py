@@ -193,9 +193,11 @@ def load_configuration(filename):
         output_streams.append(mflow.connect(address, conn_type=connection_type, mode=mode, queue_size=queue_size))
 
     if use_filter:
-        return input_stream, FilterSplitter(output_streams, output_filters)
+        res = FilterSplitter(output_streams, output_filters)
     else:
-        return input_stream, Splitter(output_streams)
+        res = Splitter(output_streams)
+
+    return input_stream, res
 
 
 
