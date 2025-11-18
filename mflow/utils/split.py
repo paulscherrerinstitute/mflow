@@ -151,7 +151,7 @@ def load_configuration(filename):
         elif configuration["source"]["mode"].lower() == "sub":
             mode = mflow.SUB
         else:
-            raise Exception("Unsupported mode [%s] for source [%s]" % (configuration["source"]["mode"], configuration["source"]))
+            raise ValueError("Unsupported mode [%s] for source [%s]" % (configuration["source"]["mode"], configuration["source"]))
 
     queue_size = 100
     if "queue_size" in configuration["source"]:
@@ -178,7 +178,7 @@ def load_configuration(filename):
             elif stream["mode"].lower() == "pub":
                 mode = mflow.PUB
             else:
-                raise Exception("Unsupported mode [%s] for stream [%s]" % (stream["mode"], stream))
+                raise ValueError("Unsupported mode [%s] for stream [%s]" % (stream["mode"], stream))
 
         queue_size = 100
         if "queue_size" in stream:
