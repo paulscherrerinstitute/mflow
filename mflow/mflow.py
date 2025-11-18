@@ -55,6 +55,10 @@ class Stream:
         self.socket = None
         self.address = None
 
+        # see connect(..., copy=True)
+        self.zmq_copy = True
+        self.zmq_track = False
+
         self.receiver = None
 
         self._socket_monitors = []
