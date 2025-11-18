@@ -29,17 +29,17 @@ class FilterSplitter:
 
     def receive(self, receiver):
 
-        for filter in self.output_filters:
-            if filter:
-                filter.update()
+        for ofilter in self.output_filters:
+            if ofilter:
+                ofilter.update()
 
         while True:
             message = receiver.next()
             more = receiver.has_more()
 
-            for stream, filter in list(zip(self.output_streams, self.output_filters)):
-                if filter:
-                    if filter.check():
+            for stream, ofilter in list(zip(self.output_streams, self.output_filters)):
+                if ofilter:
+                    if ofilter.check():
                         stream.send(message, send_more=more)
                 else:
                     stream.send(message, send_more=more)
