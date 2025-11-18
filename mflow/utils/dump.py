@@ -81,7 +81,7 @@ def main():
     global receive_more
     receive_more = True
 
-    def stop(*arguments):
+    def stop(*args):
         global receive_more
         receive_more = False
         signal.siginterrupt()
