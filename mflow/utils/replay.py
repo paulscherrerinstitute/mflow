@@ -1,8 +1,9 @@
+import argparse
 import os
-import mflow
 from os import listdir
 from os.path import isfile, join
-import argparse
+
+import mflow
 
 
 def reply_folder(bind_address, folder, mode):

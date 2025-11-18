@@ -1,6 +1,6 @@
-import mflow
 import argparse
 
+import mflow
 from mflow.tools import ThroughputStatisticsPrinter
 
 

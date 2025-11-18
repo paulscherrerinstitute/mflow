@@ -1,21 +1,18 @@
+import logging
+import sys
 from datetime import time
 from time import sleep
 
 import zmq
 
-from mflow.handlers import raw_1_0
-from mflow.handlers import dseries_end_1_0
-from mflow.handlers import dimage_1_0
-from mflow.handlers import array_1_0
-from mflow.handlers import dheader_1_0
-from mflow.tools import SocketEventListener, ConnectionCountMonitor, no_clients_timeout_notifier
+from mflow.handlers import array_1_0, dheader_1_0, dimage_1_0, dseries_end_1_0, raw_1_0
+from mflow.tools import ConnectionCountMonitor, SocketEventListener, no_clients_timeout_notifier
 
 try:
     import ujson as json
 except:
     import json
-import logging
-import sys
+
 
 # setting up logging
 logger = logging.getLogger(__name__)

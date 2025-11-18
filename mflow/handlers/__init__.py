@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 
 __all__ = []
 htypes = {}

@@ -1,6 +1,7 @@
 import os
-import mflow
 import signal
+
+import mflow
 
 counter = 0
 folder = None

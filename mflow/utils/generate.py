@@ -1,9 +1,8 @@
+import argparse
 import json
 
-from mflow.tools import ThroughputStatisticsPrinter
-
 import mflow
-import argparse
+from mflow.tools import ThroughputStatisticsPrinter
 
 
 def main():

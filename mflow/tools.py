@@ -1,8 +1,7 @@
 import threading
 import time
 from argparse import Namespace
-from collections import OrderedDict
-from collections import deque
+from collections import OrderedDict, deque
 from logging import getLogger
 
 import zmq

@@ -1,5 +1,6 @@
-import mflow
 import signal
+
+import mflow
 
 
 class Splitter:
