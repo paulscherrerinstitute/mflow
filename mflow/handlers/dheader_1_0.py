@@ -21,7 +21,7 @@ class Handler:
         if header_detail == "all" or header_detail == "basic":
             part_2 = receiver.next(as_json=True)
             return_value["part_2"] = part_2
-        
+
         # Flatfield
         if header_detail == "all":
             part_3 = receiver.next(as_json=True)
@@ -39,7 +39,7 @@ class Handler:
         if header_detail == "all":
             part_6_raw_data = receiver.next()
             return_value["part_6_raw"] = part_6_raw_data
-        
+
         # Counterrate table
         if header_detail == "all":
             part_7 = receiver.next(as_json=True)
