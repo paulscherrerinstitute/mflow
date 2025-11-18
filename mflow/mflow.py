@@ -1,7 +1,5 @@
 import logging
 import sys
-from datetime import time
-from time import sleep
 
 import zmq
 
