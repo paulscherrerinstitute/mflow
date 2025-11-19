@@ -40,7 +40,6 @@ def sender(address, n, q, block=True, copy=True):
             break
 
     stream.disconnect()
-    return
 
 
 def receiver(address, n, q, block=True, copy=True):
@@ -56,7 +55,6 @@ def receiver(address, n, q, block=True, copy=True):
                            "stat": message.statistics.messages_received, "counter": i, })
         #time.sleep(0.1)
     stream.disconnect()
-    return
 
 
 
@@ -64,9 +62,6 @@ class BaseTests(unittest.TestCase):
 
     def setUp(self):
         self.address = "tcp://127.0.0.1:4001"
-
-    def tearDown(self):
-        pass
 
 
     def test_push_pull_recv_noblock(self):
@@ -252,6 +247,7 @@ class BaseTests(unittest.TestCase):
 
             # Check overall client number report.
             self.assertEqual(n_connected_clients, [0, 1, 0, -1], "Wrong number of clients reported.")
+
         finally:
             receiving_stream_3.disconnect()
             sending_stream.disconnect()
