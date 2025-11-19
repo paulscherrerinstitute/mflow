@@ -12,11 +12,12 @@ logger.setLevel(logging.ERROR)
 
 address = "tcp://127.0.0.1:40000"
 
+stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1)
+
 # Declare a callback function to call then the number of clients changes.
 def print_number_of_connections(n_connections):
     print("Current number of clients: %d." % n_connections)
 
-stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1)
 # Register the callback function to the ConnectionCountMonitor.
 stream.register_socket_monitor(ConnectionCountMonitor(print_number_of_connections))
 
