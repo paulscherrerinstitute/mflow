@@ -13,7 +13,7 @@ class Handler:
         return_value = None
         data = []
 
-        # header contains: "htype", "shape", "type", "frame", "endianess", "source", "encoding", "tags"
+        # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
 
         # Receiving data
         while receiver.has_more():

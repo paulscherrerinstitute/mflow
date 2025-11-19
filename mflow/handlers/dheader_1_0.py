@@ -15,7 +15,7 @@ class Handler:
 
         # data = []
 
-        # header contains: "htype", "shape", "type", "frame", "endianess", "source", "encoding", "tags"
+        # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
 
         # Detector configuration
         if header_detail == "all" or header_detail == "basic":
