@@ -6,7 +6,7 @@ from os.path import isfile, join
 import mflow
 
 
-def reply_folder(bind_address, folder, mode):
+def replay_folder(bind_address, folder, mode):
     if not os.path.exists(folder):
         raise ValueError("Specified folder '%s' does not exist.")
 
@@ -43,7 +43,7 @@ def main():
     address = arguments.address
     mode = mflow.PUB if arguments.mode == "pub" else mflow.PUSH
 
-    reply_folder(address, folder, mode)
+    replay_folder(address, folder, mode)
 
 
 
