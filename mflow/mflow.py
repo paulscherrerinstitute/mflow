@@ -369,7 +369,7 @@ def disconnect(stream):
 
 def main():
     # Configuration logging
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+#    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(name)s - %(message)s")
 
     stream = connect("tcp://sf-lc:9999")
