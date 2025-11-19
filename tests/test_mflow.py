@@ -1,20 +1,16 @@
-import threading
+import json
+import logging
+import time
 import unittest
 from itertools import groupby
-
-import mflow
-import mflow.handlers.array_1_0
-
-import time
-import json
+from multiprocessing import Process, Queue
 
 import numpy as np
 
-from multiprocessing import Process, Queue
-
-import logging
-
+import mflow
+import mflow.handlers.array_1_0
 from mflow.tools import ConnectionCountMonitor
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.DEBUG)
