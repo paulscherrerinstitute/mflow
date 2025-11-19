@@ -23,6 +23,7 @@ class Handler:
 
         return return_value
 
+
     @staticmethod
     def send(message, send, block=True):
         send(json.dumps(message["header"]).encode(), send_more=True, block=True)

@@ -7,10 +7,12 @@ from logging import getLogger
 import zmq
 from zmq.utils.monitor import recv_monitor_message
 
+
 _logger = getLogger(__name__)
 
 
 class RoundRobinStrategy:
+
     def __init__(self):
         self.last_stream_read = None
 
@@ -33,6 +35,7 @@ class Merge:
         self.streams = arg
         self.receive_strategy = receive_strategy
 
+
     def receive(self, handler=None, block=True):
         message = None
         count = 0
@@ -48,12 +51,14 @@ class Merge:
 
         return message
 
+
     def disconnect(self):
         """
         As this class should somehow behave as a stream this function will close all involved streams
         """
         for stream in self.streams:
             stream.disconnect()
+
 
 
 class ThroughputStatistics:
@@ -100,6 +105,7 @@ class ThroughputStatistics:
                                            "messages_received": 0,
                                            "time": self.n.initial_time}
 
+
     def save_statistics(self, message_statistics):
         """
         Save new message statistics to the buffer.
@@ -120,6 +126,7 @@ class ThroughputStatistics:
             return True
         # The sampling interval was not reached, no new statistics events.
         return False
+
 
     def _save_statistics_to_buffer(self):
         """
@@ -145,6 +152,7 @@ class ThroughputStatistics:
         self._logger.info("Data rate: {data_rate: >10.3f} MB/s    Message rate: {message_rate: >10.3f} Hz"
                           .format(data_rate=data_rate * self.MB_FACTOR, message_rate=message_rate))
 
+
     def get_last_sampled_statistics(self):
         """
         Print the latest sampled statistics.
@@ -154,6 +162,7 @@ class ThroughputStatistics:
             return self._buffer[-1]
         except IndexError:
             return None
+
 
     def get_statistics(self):
         """
@@ -178,12 +187,14 @@ class ThroughputStatistics:
         # No messages were received.
         return {}
 
+
     def get_statistics_raw(self):
         """
         Return the raw statistics data.
         :return: List of statistic events.
         """
         return self._buffer
+
 
     def flush(self):
         """
@@ -201,6 +212,7 @@ class ThroughputStatistics:
         return False
 
 
+
 class ThroughputStatisticsPrinter:
     """
     Wrapper to save and display the stream statistics.
@@ -213,6 +225,7 @@ class ThroughputStatisticsPrinter:
         """
         self.statistics = ThroughputStatistics(sampling_interval=sampling_interval)
 
+
     def save_statistics(self, message_statistics):
         """
         Should be called at every message received.
@@ -220,6 +233,7 @@ class ThroughputStatisticsPrinter:
         """
         if self.statistics.save_statistics(message_statistics):
             self.print_statistics()
+
 
     def print_statistics(self):
         """
@@ -236,6 +250,7 @@ class ThroughputStatisticsPrinter:
             .format(data_rate=data_rate * self.statistics.MB_FACTOR, message_rate=message_rate)
 
         print(output)
+
 
     def print_summary(self):
         """
@@ -260,6 +275,7 @@ class ThroughputStatisticsPrinter:
 
         print("_" * 60)
 
+
     def close(self, print_summary=True):
         """
         You need to close the statistics in order to flush any non printed statistics.
@@ -270,6 +286,7 @@ class ThroughputStatisticsPrinter:
 
         if print_summary:
             self.print_summary()
+
 
 
 class SocketEventListener:
@@ -295,6 +312,7 @@ class SocketEventListener:
 
         self.callbacks = callbacks
         self.events = events
+
 
     def start(self, socket):
         """
@@ -333,6 +351,7 @@ class SocketEventListener:
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
 
+
     def stop(self):
         """
         Stop the monitoring thread.
@@ -346,6 +365,7 @@ class SocketEventListener:
     def _notify_listeners(self, event):
         for callback in self.callbacks:
             callback(event)
+
 
 
 class ConnectionCountMonitor:
@@ -363,6 +383,7 @@ class ConnectionCountMonitor:
         # Notify the client that there are zero connections counted.
         self.callback(self.client_counter)
 
+
     def __call__(self, event):
         if event is not None:
             event_mask = event["event"]
@@ -377,6 +398,7 @@ class ConnectionCountMonitor:
                 self.client_counter = 0
 
         self.callback(self.client_counter)
+
 
 
 def no_clients_timeout_notifier(no_client_action, no_client_timeout):

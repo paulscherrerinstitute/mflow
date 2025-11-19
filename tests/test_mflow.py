@@ -59,12 +59,15 @@ def receiver(address, n, q, block=True, copy=True):
     return
 
 
+
 class BaseTests(unittest.TestCase):
+
     def setUp(self):
         self.address = "tcp://127.0.0.1:4001"
 
     def tearDown(self):
         pass
+
 
     def test_push_pull_recv_noblock(self):
         n = 10
@@ -95,6 +98,7 @@ class BaseTests(unittest.TestCase):
         self.assertEqual(n, stat, "Stats reports wrong number messages received")
         self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
 
+
     def test_push_pull_recv_nocopy(self):
         n = 10
         q = Queue()
@@ -124,6 +128,7 @@ class BaseTests(unittest.TestCase):
         self.assertEqual(n, stat, "Stats reports wrong number messages received")
         self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
 
+
     def test_push_pull_recv(self):
         n = 10
         q = Queue()
@@ -152,6 +157,7 @@ class BaseTests(unittest.TestCase):
         self.assertEqual(n, i, "Received too few messages")
         self.assertEqual(n, stat, "Stats reports wrong number messages received")
         self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
+
 
     def test_socket_monitor_sender(self):
         socket_address = "tcp://127.0.0.1:9999"
@@ -199,6 +205,7 @@ class BaseTests(unittest.TestCase):
 
         finally:
             sending_stream.disconnect()
+
 
     def test_socket_monitor_dynamic(self):
         socket_address = "tcp://127.0.0.1:9999"
@@ -249,6 +256,7 @@ class BaseTests(unittest.TestCase):
             receiving_stream_3.disconnect()
             sending_stream.disconnect()
 
+
     def test_no_client_monitor(self):
         socket_address = "tcp://127.0.0.1:9999"
         no_clients_triggered = False
@@ -285,8 +293,8 @@ class BaseTests(unittest.TestCase):
 
         server.disconnect()
 
-    def test_send_timeout(self):
 
+    def test_send_timeout(self):
         send_timeout = 100
 
         def test_timeout():

@@ -6,7 +6,6 @@ from mflow.tools import ThroughputStatisticsPrinter
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Stream generation utility")
 
     parser.add_argument("-a", "--address", default="tcp://*:9999", type=str,

@@ -7,7 +7,6 @@ class Handler:
 
     @staticmethod
     def receive(receiver):
-
         header = receiver.next(as_json=True)
 
         return_value = None
@@ -29,6 +28,7 @@ class Handler:
 
         return return_value
 
+
     @staticmethod
     def send(message, send, block=True):
         send(json.dumps(message["header"]).encode(), send_more=True, block=True)
@@ -45,6 +45,7 @@ class Handler:
                 data_segment = data_segment.tobytes()
 
             send(data_segment, block=block, send_more=more_blocks_to_send)
+
 
 
 def get_image(raw_data, dtype, shape):

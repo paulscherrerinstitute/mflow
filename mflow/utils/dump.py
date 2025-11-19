@@ -11,7 +11,6 @@ skip_from_message = None
 
 
 def dump(receiver):
-
     cnt = 0
     message = receiver.next()
     cnt += 1
@@ -51,7 +50,6 @@ def dump_screen(receiver):
 
 
 def main():
-
     import argparse
 
     global counter

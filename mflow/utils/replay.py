@@ -7,7 +7,6 @@ import mflow
 
 
 def reply_folder(bind_address, folder, mode):
-
     if not os.path.exists(folder):
         raise ValueError("Specified folder '%s' does not exist.")
 
@@ -30,7 +29,6 @@ def reply_folder(bind_address, folder, mode):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Stream replay utility")
 
     parser.add_argument("folder", type=str, help="Destination folder")

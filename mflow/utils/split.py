@@ -8,8 +8,8 @@ class Splitter:
     def __init__(self, output_streams):
         self.output_streams = output_streams
 
-    def receive(self, receiver):
 
+    def receive(self, receiver):
         while True:
             message = receiver.next()
             more = receiver.has_more()
@@ -21,14 +21,15 @@ class Splitter:
                 break
 
 
+
 class FilterSplitter:
 
     def __init__(self, output_streams, output_filters):
         self.output_streams = output_streams
         self.output_filters = output_filters
 
-    def receive(self, receiver):
 
+    def receive(self, receiver):
         for ofilter in self.output_filters:
             if ofilter:
                 ofilter.update()
@@ -48,7 +49,9 @@ class FilterSplitter:
                 break
 
 
+
 class ModuloFilter:
+
     def __init__(self, modulo=1):
         self.modulo = modulo
         self.counter = 0  # Internal counter
@@ -63,8 +66,8 @@ class ModuloFilter:
         return False
 
 
-def main():
 
+def main():
     import argparse
     import sys
 
@@ -128,7 +131,6 @@ def load_configuration(filename):
         ]
     }
     """
-
     import json
     import re
 

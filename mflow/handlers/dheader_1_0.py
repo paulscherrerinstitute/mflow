@@ -56,6 +56,7 @@ class Handler:
 
         return return_value
 
+
     @staticmethod
     def send(message, send, block=True):
         detailed_header = message["header"]["header_detail"] == "all"

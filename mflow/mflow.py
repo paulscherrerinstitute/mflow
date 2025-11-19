@@ -21,6 +21,7 @@ formatter = logging.Formatter("[%(asctime)s][%(name)s][%(levelname)s] %(message)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+
 CONNECT = "connect"
 BIND = "bind"
 
@@ -49,7 +50,6 @@ send_handlers = {
 class Stream:
 
     def __init__(self):
-
         self.context = None
         self._context_is_owned = False
         self.socket = None
@@ -64,6 +64,7 @@ class Stream:
         self._socket_monitors = []
         self._socket_event_listener = SocketEventListener(self._socket_monitors)
 
+
     def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000,
                 context=None, copy=True, send_timeout=None):
         """
@@ -77,7 +78,6 @@ class Stream:
         :param send_timeout:    Send timeout in milliseconds (-1 = infinite)
         :return:
         """
-
         if not context:
             self.context = zmq.Context()
             self._context_is_owned = True
@@ -122,6 +122,7 @@ class Stream:
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket, copy=copy)
 
+
     def register_socket_monitor(self, monitor):
         """
         Register a new connection monitor.
@@ -133,6 +134,7 @@ class Stream:
         # If the socket event listener is not running yet, but the socket is already connected, start it.
         if not self._socket_event_listener.monitor_listening.is_set() and (self.socket and not self.socket.closed):
             self._socket_event_listener.start(self.socket)
+
 
     def remove_socket_monitor(self, callback_function):
         """
@@ -146,8 +148,8 @@ class Stream:
         if not self._socket_monitors:
             self._socket_event_listener.stop()
 
-    def disconnect(self):
 
+    def disconnect(self):
         if self.socket.closed:
             logger.warning("Trying to close an already closed socket... ignore and return")
             return
@@ -168,6 +170,7 @@ class Stream:
             logger.debug(sys.exc_info()[1])
             logger.info("Unable to disconnect properly")
 
+
     def receive(self, handler=None, block=True):
         """
         :param handler:     Reference to a specific message handler function to use for interpreting
@@ -175,7 +178,6 @@ class Stream:
         :param block:       Blocking receive call
         :return:            Map holding the data, timestamp, data and main header
         """
-
         message = None
         # Set blocking flag in receiver
         self.receiver.block = block
@@ -219,12 +221,13 @@ class Stream:
 
         return message
 
+
     def receive_raw(self, block=True):
         message = self.receive(handler=receive_handlers["raw-1.0"], block=block)
         return message
 
-    def send(self, message, send_more=False, block=True, as_json=False):
 
+    def send(self, message, send_more=False, block=True, as_json=False):
         flags = 0
         if send_more:
             flags = zmq.SNDMORE
@@ -245,8 +248,8 @@ class Stream:
             logger.error(sys.exc_info()[1])
             raise e
 
-    def forward(self, message, handler=None, block=True):
 
+    def forward(self, message, handler=None, block=True):
         if not handler:
             try:
                 # Dynamically select handler
@@ -272,6 +275,7 @@ class Stream:
             logger.warning("Unable to send message - skipping")
 
 
+
 class ReceiveHandler:
 
     def __init__(self, socket, copy=True):
@@ -285,13 +289,16 @@ class ReceiveHandler:
         self.zmq_copy = copy
         self.zmq_track = not copy
 
+
     def header(self):
         flags = 0 if self.block else zmq.NOBLOCK
         self.raw_header = self.socket.recv(flags=flags)
         return json.loads(self.raw_header.decode("utf-8"))
 
+
     def has_more(self):
         return self.socket.getsockopt(zmq.RCVMORE)
+
 
     def next(self, as_json=False):
         try:
@@ -319,6 +326,7 @@ class ReceiveHandler:
         except zmq.ZMQError:
             return None
 
+
     def flush(self, success=True):
         flags = 0 if self.block else zmq.NOBLOCK
         # Clear remaining sub-messages
@@ -336,17 +344,22 @@ class ReceiveHandler:
             self.statistics.messages_received += 1
 
 
+
 class Statistics:
+
     def __init__(self):
         self.bytes_received = 0
         self.total_bytes_received = 0
         self.messages_received = 0
 
 
+
 class Message:
+
     def __init__(self, statistics, data):
         self.statistics = statistics
         self.data = data
+
 
 
 def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000,
