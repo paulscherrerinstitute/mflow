@@ -19,20 +19,6 @@ def main():
     stream = mflow.connect(address, mode=mode, receive_timeout=1000)
     statistics_printer = ThroughputStatisticsPrinter(sampling_interval=arguments.sampling_interval)
 
-    def dump(receiver):
-        """
-        Just read the stream.
-        :param receiver: Function to use as a receiver.
-        :return: 1 if the reception was successful, None if it timed out.
-        """
-        data = receiver.next()
-        while receiver.has_more():
-            # If any of the message parts time outed (the only way a message part can be None)
-            if receiver.next() is None:
-                return None
-        # Return 1 only for valid data.
-        return 1 if data else None
-
     print("mflow stats started. Sampling interval is %.2f seconds." % arguments.sampling_interval)
     print("_" * 60)
 
@@ -45,6 +31,21 @@ def main():
         stream.disconnect()
         # Flush and Print summary.
         statistics_printer.close()
+
+
+def dump(receiver):
+    """
+    Just read the stream.
+    :param receiver: Function to use as a receiver.
+    :return: 1 if the reception was successful, None if it timed out.
+    """
+    data = receiver.next()
+    while receiver.has_more():
+        # If any of the message parts time outed (the only way a message part can be None)
+        if receiver.next() is None:
+            return None
+    # Return 1 only for valid data.
+    return 1 if data else None
 
 
 
