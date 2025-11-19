@@ -1,15 +1,10 @@
-import sys
-import os
+import logging
 import time
 
-try:
-    import mflow
-except:
-    sys.path.append(os.environ["PWD"] + "/../")
-    import mflow
-
-import logging
 import numpy as np
+
+import mflow
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.ERROR)
@@ -17,7 +12,6 @@ logger.setLevel(logging.ERROR)
 address = "tcp://127.0.0.1:40000"
 
 stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1)
-
 
 for i in range(16):
     try:

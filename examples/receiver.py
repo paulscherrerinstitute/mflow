@@ -1,13 +1,7 @@
-import sys
-import os
-
 import logging
 
-try:
-    import mflow
-except:
-    sys.path.append(os.environ["PWD"] + "/../")
-    import mflow
+import mflow
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.ERROR)
