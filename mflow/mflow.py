@@ -3,8 +3,8 @@ import sys
 
 import zmq
 
-from mflow.handlers import array_1_0, dheader_1_0, dimage_1_0, dseries_end_1_0, raw_1_0
-from mflow.utils import ConnectionCountMonitor, SocketEventListener, no_clients_timeout_notifier
+from .handlers import array_1_0, dheader_1_0, dimage_1_0, dseries_end_1_0, raw_1_0
+from .utils import ConnectionCountMonitor, SocketEventListener, no_clients_timeout_notifier
 
 try:
     import ujson as json
