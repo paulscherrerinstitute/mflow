@@ -71,7 +71,6 @@ def receive_function(receiver):
       return_value = {}
       data = []
 
-      # Receiving data
       while receiver.has_more():
           raw_data = receiver.next()
           if raw_data:

@@ -12,7 +12,6 @@ except:
     import json
 
 
-# setting up logging
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
@@ -381,7 +380,6 @@ def disconnect(stream):
 
 
 def main():
-    # Configuration logging
 #    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(name)s - %(message)s")
 

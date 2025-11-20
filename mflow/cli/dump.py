@@ -44,9 +44,9 @@ def dump_screen(receiver):
             print(message)
 
 
-# def stop(*argv):
-#     global receive_more
-#     receive_more = False
+#def stop(*argv):
+#    global receive_more
+#    receive_more = False
 
 
 def main():

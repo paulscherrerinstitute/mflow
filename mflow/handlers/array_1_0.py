@@ -14,7 +14,6 @@ class Handler:
 
         # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
 
-        # Receiving data
         while receiver.has_more():
             raw_data = receiver.next()
             if raw_data:

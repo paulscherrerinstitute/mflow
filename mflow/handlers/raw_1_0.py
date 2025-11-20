@@ -9,7 +9,6 @@ class Handler:
         return_value = None
         data = []
 
-        # Receiving data
         while receiver.has_more():
             raw_data = receiver.next()
             if raw_data:
