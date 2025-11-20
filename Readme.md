@@ -124,8 +124,8 @@ import mflow
 stream_one = mflow.connect('tcp://source1:7777')
 stream_two = mflow.connect('tcp://source2:7779')
 
-import mflow.tools
-stream = mflow.tools.Merge(stream_one, stream_two)
+import mflow.utils
+stream = mflow.utils.Merge(stream_one, stream_two)
 
 message = stream.receive()
 

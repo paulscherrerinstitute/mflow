@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 import mflow
-from mflow.tools import ConnectionCountMonitor
+from mflow.utils import ConnectionCountMonitor
 
 
 logger = logging.getLogger("mflow.mflow")

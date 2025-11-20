@@ -1,7 +1,7 @@
 import argparse
 
 import mflow
-from mflow.tools import ThroughputStatisticsPrinter
+from mflow.utils import ThroughputStatisticsPrinter
 
 
 def main():

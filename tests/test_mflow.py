@@ -9,7 +9,7 @@ import numpy as np
 
 import mflow
 import mflow.handlers.array_1_0
-from mflow.tools import ConnectionCountMonitor
+from mflow.utils import ConnectionCountMonitor
 
 
 logger = logging.getLogger("mflow.mflow")
