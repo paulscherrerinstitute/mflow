@@ -1,3 +1,6 @@
+import argparse
+import json
+import re
 import signal
 
 import mflow
@@ -68,8 +71,6 @@ class ModuloFilter:
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(description="Stream split utility")
 
     parser.add_argument("-c", "--config", help="Configuration file")
@@ -129,9 +130,6 @@ def load_configuration(filename):
         ]
     }
     """
-    import json
-    import re
-
     # Load configuration file
     with open(filename) as file_handle:
         configuration = json.load(file_handle)

@@ -1,3 +1,4 @@
+import argparse
 import os
 import signal
 
@@ -50,8 +51,6 @@ def dump_screen(receiver):
 
 
 def main():
-    import argparse
-
     global counter
     global folder
     global skip_from_message
