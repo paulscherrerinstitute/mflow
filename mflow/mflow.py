@@ -1,5 +1,4 @@
 import logging
-import sys
 
 import zmq
 
@@ -103,8 +102,9 @@ class Stream:
                 self._socket_event_listener.start(self.socket)
 
         except Exception as e:
-            logger.error("Full error: %s", sys.exc_info()[1])
-            raise RuntimeError("Unable to connect/bind to %s" % address) from e
+            msg = "Unable to %s to %s" % (conn_type, address)
+            logger.exception(msg)
+            raise RuntimeError(msg) from e
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
@@ -167,8 +167,9 @@ class Stream:
 
             logger.info("Disconnected")
         except:
-            logger.debug(sys.exc_info()[1])
-            logger.info("Unable to disconnect properly")
+            msg = "Unable to disconnect properly"
+            logger.debug(msg, exc_info=True)
+            logger.info(msg)
 
 
     def receive(self, handler=None, block=True):
@@ -202,8 +203,9 @@ class Stream:
             try:
                 handler = receive_handlers[htype]
             except:
-                logger.debug(sys.exc_info()[1])
-                logger.warning("htype - %s -  not supported", htype)
+                msg = "htype - %s - not supported" % htype
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
 
         try:
             data = handler(self.receiver)
@@ -239,14 +241,14 @@ class Stream:
                 self.socket.send_json(message, flags)
             else:
                 self.socket.send(message, flags, copy=self.zmq_copy, track=self.zmq_track)
-        except zmq.Again as e:
+        except zmq.Again:
             if not block:
                 pass
             else:
-                raise e
-        except zmq.ZMQError as e:
-            logger.error(sys.exc_info()[1])
-            raise e
+                raise
+        except zmq.ZMQError:
+            logger.exception("Error while sending")
+            raise
 
 
     def forward(self, message, handler=None, block=True):
@@ -254,25 +256,28 @@ class Stream:
             try:
                 # Dynamically select handler
                 htype = message["header"]["htype"]
-            except Exception as e:
-                logger.debug(sys.exc_info())
-                logger.warning("Unable to read header - skipping")
+            except Exception:
+                msg = "Unable to read header - skipping"
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
                 # Clear remaining sub-messages if exist
-                raise e
+                raise
 
             try:
                 handler = send_handlers[htype]
             except:
-                logger.debug(sys.exc_info()[1])
-                logger.warning("htype - %s -  not supported", htype)
+                msg = "htype - %s - not supported" % htype
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
 
         try:
             handler(message, send=self.send, block=block)
         except KeyboardInterrupt:
             raise
         except:
-            logger.debug("%s%s", sys.exc_info()[0], sys.exc_info()[1])
-            logger.warning("Unable to send message - skipping")
+            msg = "Unable to send message - skipping"
+            logger.debug(msg, exc_info=True)
+            logger.warning(msg)
 
 
 
