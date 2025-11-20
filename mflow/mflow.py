@@ -29,21 +29,18 @@ SUB = zmq.SUB
 PUSH = zmq.PUSH
 PULL = zmq.PULL
 
-receive_handlers = {
-    "array-1.0": array_1_0.Handler.receive,
-    "dheader-1.0": dheader_1_0.Handler.receive,
-    "dimage-1.0": dimage_1_0.Handler.receive,
-    "dseries_end-1.0": dseries_end_1_0.Handler.receive,
-    "raw-1.0": raw_1_0.Handler.receive
+
+handler_modules = {
+    "array-1.0": array_1_0,
+    "dheader-1.0": dheader_1_0,
+    "dimage-1.0": dimage_1_0,
+    "dseries_end-1.0": dseries_end_1_0,
+    "raw-1.0": raw_1_0
 }
 
-send_handlers = {
-    "array-1.0": array_1_0.Handler.send,
-    "dheader-1.0": dheader_1_0.Handler.send,
-    "dimage-1.0": dimage_1_0.Handler.send,
-    "dseries_end-1.0": dseries_end_1_0.Handler.send,
-    "raw-1.0": raw_1_0.Handler.send
-}
+handlers = {k: getattr(v, "Handler") for k, v in handler_modules.items()}
+receive_handlers = {k: getattr(v, "receive") for k, v in handlers.items()}
+send_handlers = {k: getattr(v, "send") for k, v in handlers.items()}
 
 
 class Stream:
