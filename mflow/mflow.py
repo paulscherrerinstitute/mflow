@@ -39,7 +39,7 @@ receive_handlers = {
 
 send_handlers = {
     "array-1.0": array_1_0.Handler.send,
-    "dheade-1.0": dheader_1_0.Handler.send,
+    "dheader-1.0": dheader_1_0.Handler.send,
     "dimage-1.0": dimage_1_0.Handler.send,
     "dseries_end-1.0": dseries_end_1_0.Handler.send,
     "raw-1.0": raw_1_0.Handler.send
