@@ -46,8 +46,8 @@ class Merge:
             message = self.streams[index_stream].receive(handler=handler, block=False)
             count += 1
 
-        # TODO need to update statistics
-        # TODO need to decide what to do if block = True
+        #TODO: need to update statistics
+        #TODO: need to decide what to do if block = True
 
         return message
 
