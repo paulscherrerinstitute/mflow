@@ -6,6 +6,7 @@ import zmq
 from .handlers import array_1_0, dheader_1_0, dimage_1_0, dseries_end_1_0, raw_1_0
 from .utils import ConnectionCountMonitor, SocketEventListener, no_clients_timeout_notifier
 
+#TODO: should the handlers (etc.) also use ujson if available? could add a shim and import from there...
 try:
     import ujson as json
 except:
