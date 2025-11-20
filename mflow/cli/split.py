@@ -69,7 +69,6 @@ class ModuloFilter:
 
 def main():
     import argparse
-    import sys
 
     parser = argparse.ArgumentParser(description="Stream split utility")
 
@@ -94,8 +93,7 @@ def main():
         splitter = Splitter(output_streams)
         input_stream = mflow.connect(address)
     else:
-        parser.print_help()
-        sys.exit(-1)
+        parser.error("insufficient arguments given")
 
     # Info: By here splitter and input_stream needs to be specified
 
