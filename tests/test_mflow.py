@@ -308,7 +308,7 @@ class BaseTests(unittest.TestCase):
         process.start()
 
         # Lets wait a bit more.
-        time.sleep(send_timeout/1000 + 0.5)
+        time.sleep(send_timeout / 1000 + 0.5)
 
         is_process_alive = process.is_alive()
         process.terminate()

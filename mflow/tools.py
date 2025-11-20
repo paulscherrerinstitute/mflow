@@ -66,7 +66,7 @@ class ThroughputStatistics:
     Utility to calculate the stream throughput based on the mflow statistics.
     """
     # Bytes to mega bytes conversion factor.
-    MB_FACTOR = 1 / (10 ** 6)
+    MB_FACTOR = 1 / 10**6
 
     def __init__(self, buffer=None, namespace=None, sampling_interval=0.2):
         """

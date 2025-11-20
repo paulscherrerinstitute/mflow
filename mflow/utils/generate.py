@@ -22,7 +22,7 @@ def main():
 
     stream = mflow.connect(address, conn_type="bind", mode=mode)
 
-    size_bytes = int(size*1024.0*1024.0)
+    size_bytes = int(size * 1024 * 1024)
     header = {"htype": "raw-1.0", "type": "int32", "shape": [1, size_bytes/4]}
     data = bytearray(size_bytes)
 
