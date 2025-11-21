@@ -14,7 +14,7 @@ class Handler:
         while receiver.has_more():
             segment = receiver.next() or None
             if segment:
-                segment = get_image(segment, header["type"], header["shape"])
+                segment = get_array(segment, header["type"], header["shape"])
             data.append(segment)
 
         res = None #TODO: this is inconsistent -- should it always be a dict?
@@ -43,7 +43,7 @@ class Handler:
 
 
 
-def get_image(raw_data, dtype, shape):
+def get_array(raw_data, dtype, shape):
     return numpy.frombuffer(raw_data, dtype=dtype).reshape(shape)
 
 
