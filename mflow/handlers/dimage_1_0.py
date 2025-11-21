@@ -6,24 +6,23 @@ class Handler:
     @staticmethod
     def receive(receiver):
         header = receiver.next(as_json=True)
-        return_value = {}
-
         part_2 = receiver.next(as_json=True)
-        part_3_raw_data = receiver.next()
-
+        part_3_raw = receiver.next()
         part_4 = receiver.next(as_json=True)
 
+        res = {
+            "header": header,
+            "part_2": part_2,
+            "part_3_raw": part_3_raw,
+            "part_4": part_4
+        }
+
         if receiver.has_more():
-            # In our cases appendix is always a JSON!
+            # appendix is always a json
             appendix = receiver.next(as_json=True)
-            return_value["appendix"] = appendix
+            res["appendix"] = appendix
 
-        return_value["header"] = header
-        return_value["part_2"] = part_2
-        return_value["part_3_raw"] = part_3_raw_data  # Image data
-        return_value["part_4"] = part_4
-
-        return return_value
+        return res
 
 
     @staticmethod

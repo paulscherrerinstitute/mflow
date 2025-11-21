@@ -66,21 +66,18 @@ Register multiple custom (htype) handlers:
 
 ```python
 def receive_function(receiver):
-
       header = receiver.next(as_json=True)
-      return_value = {}
+
       data = []
-
       while receiver.has_more():
-          raw_data = receiver.next()
-          if raw_data:
-              data.append(raw_data)
-          else:
-              data.append(None)
+          segment = receiver.next() or None
+          data.append(segment)
 
-      return_value['header'] = header
-      return_value['data'] = data
-      return return_value
+      res = {
+          "header": header,
+          "data": data
+      }
+      return res
 
 
 my_handlers = dict()

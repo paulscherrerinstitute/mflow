@@ -7,54 +7,43 @@ class Handler:
 
     @staticmethod
     def receive(receiver):
+        # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
         header = receiver.next(as_json=True)
-        return_value = {}
-        return_value["header"] = header
+
+        res = {"header": header}
 
         header_detail = header["header_detail"]
 
-        # data = []
-
-        # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
-
-        # Detector configuration
         if header_detail == "all" or header_detail == "basic":
+            # Detector configuration
             part_2 = receiver.next(as_json=True)
-            return_value["part_2"] = part_2
+            res["part_2"] = part_2
 
-        # Flatfield
         if header_detail == "all":
+            # Flatfield
             part_3 = receiver.next(as_json=True)
-            return_value["part_3"] = part_3
+            part_4_raw = receiver.next()
+            res["part_3"] = part_3
+            res["part_4_raw"] = part_4_raw
 
-        if header_detail == "all":
-            part_4_raw_data = receiver.next()
-            return_value["part_4_raw"] = part_4_raw_data
-
-        # Pixel Mask
-        if header_detail == "all":
+            # Pixel Mask
             part_5 = receiver.next(as_json=True)
-            return_value["part_5"] = part_5
+            part_6_raw = receiver.next()
+            res["part_5"] = part_5
+            res["part_6_raw"] = part_6_raw
 
-        if header_detail == "all":
-            part_6_raw_data = receiver.next()
-            return_value["part_6_raw"] = part_6_raw_data
-
-        # Counterrate table
-        if header_detail == "all":
+            # Counterrate table
             part_7 = receiver.next(as_json=True)
-            return_value["part_7"] = part_7
-
-        if header_detail == "all":
-            part_8_raw_data = receiver.next()
-            return_value["part_8_raw"] = part_8_raw_data
+            part_8_raw = receiver.next()
+            res["part_7"] = part_7
+            res["part_8_raw"] = part_8_raw
 
         if receiver.has_more():
-            # In our cases appendix is always a JSON!
+            # appendix is always json
             appendix = receiver.next(as_json=True)
-            return_value["appendix"] = appendix
+            res["appendix"] = appendix
 
-        return return_value
+        return res
 
 
     @staticmethod
