@@ -60,7 +60,7 @@ class Handler:
         if detailed_header:
             send(json.dumps(message["part_3"]).encode(), send_more=True, block=block)
             send(message["part_4_raw"], send_more=True, block=block)
-            send(json.dumps(message["data"]["part_5"]).encode(), send_more=True, block=block)
+            send(json.dumps(message["part_5"]).encode(), send_more=True, block=block)
             send(message["part_6_raw"], send_more=True, block=block)
             send(json.dumps(message["part_7"]).encode(), send_more=True, block=block)
             # Send more only if it has appendix.
