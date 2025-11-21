@@ -12,7 +12,7 @@ class Handler:
             segment = receiver.next() or None
             data.append(segment)
 
-        res = None
+        res = None #TODO: this is inconsistent -- should it always be a dict?
         if header or data:
             res = {
                 "header": header,
@@ -27,6 +27,7 @@ class Handler:
         send(json.dumps(message["header"]).encode(), send_more=True, block=True)
 
         for segment in message["data"]:
+            #TODO: why does this not need send_more=True up until the last segment?
             send(segment, block=block)
 
 

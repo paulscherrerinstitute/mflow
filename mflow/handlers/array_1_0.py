@@ -17,7 +17,7 @@ class Handler:
                 segment = get_image(segment, header["type"], header["shape"])
             data.append(segment)
 
-        res = None
+        res = None #TODO: this is inconsistent -- should it always be a dict?
         if header or data:
             res = {
                 "header": header,
