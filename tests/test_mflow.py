@@ -300,7 +300,7 @@ class BaseTests(unittest.TestCase):
                                     send_timeout=send_timeout)
 
                 server.send(message={"valid": True}, block=True, as_json=True)
-            except:
+            except Exception:
                 server.disconnect()
 
         # Run it in a separate process, so we can terminate it if needed.

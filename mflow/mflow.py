@@ -8,7 +8,7 @@ from .utils import ConnectionCountMonitor, SocketEventListener, no_clients_timeo
 #TODO: should the handlers (etc.) also use ujson if available? could add a shim and import from there...
 try:
     import ujson as json
-except:
+except ImportError:
     import json
 
 
@@ -163,7 +163,7 @@ class Stream:
                     self.context.term()
 
             logger.info("Disconnected")
-        except:
+        except Exception:
             msg = "Unable to disconnect properly"
             logger.debug(msg, exc_info=True)
             logger.info(msg)
@@ -189,9 +189,7 @@ class Stream:
                 # not clear if this is needed
                 self.receiver.flush(receive_is_successful)
                 return message
-            except KeyboardInterrupt:
-                raise
-            except:
+            except Exception:
                 logger.exception("Unable to read header - skipping")
                 # Clear remaining sub-messages if exist
                 self.receiver.flush(receive_is_successful)
@@ -199,7 +197,7 @@ class Stream:
 
             try:
                 handler = receive_handlers[htype]
-            except:
+            except Exception:
                 msg = "htype - %s - not supported" % htype
                 logger.debug(msg, exc_info=True)
                 logger.warning(msg)
@@ -210,9 +208,7 @@ class Stream:
             if data:
                 receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
-        except KeyboardInterrupt:
-            raise
-        except:
+        except Exception:
             logger.exception("Unable to decode message - skipping")
 
         # Clear remaining sub-messages if exist
@@ -262,16 +258,14 @@ class Stream:
 
             try:
                 handler = send_handlers[htype]
-            except:
+            except Exception:
                 msg = "htype - %s - not supported" % htype
                 logger.debug(msg, exc_info=True)
                 logger.warning(msg)
 
         try:
             handler(message, send=self.send, block=block)
-        except KeyboardInterrupt:
-            raise
-        except:
+        except Exception:
             msg = "Unable to send message - skipping"
             logger.debug(msg, exc_info=True)
             logger.warning(msg)
