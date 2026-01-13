@@ -80,8 +80,10 @@ class Stream(object):
 
         if not context:
             self.context = zmq.Context()
+            self._context_is_owned = True
         else:
             self.context = context
+            self._context_is_owned = False
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
             self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
@@ -115,7 +117,7 @@ class Stream(object):
         self.address = address
         self.zmq_copy = copy
         self.zmq_track = not copy
-        
+
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket, copy=copy)
@@ -153,8 +155,14 @@ class Stream(object):
             # Stop the socket event listener.
             self._socket_event_listener.stop()
 
-            self.socket.disconnect(self.address)
-            self.socket.close()
+            # Even if disconnect fails, we need to close.
+            try:
+                self.socket.disconnect(self.address)
+            finally:
+                self.socket.close()
+                if self._context_is_owned:
+                    self.context.term()
+
             logger.info("Disconnected")
         except:
             logger.debug(sys.exc_info()[1])
@@ -205,7 +213,7 @@ class Stream(object):
             raise
         except:
             logger.exception('Unable to decode message - skipping')
-            
+
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
 
