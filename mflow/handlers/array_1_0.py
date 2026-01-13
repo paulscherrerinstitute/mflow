@@ -7,45 +7,44 @@ class Handler:
 
     @staticmethod
     def receive(receiver):
-
+        # header contains: "htype", "shape", "type", "frame", "endianness", "source", "encoding", "tags"
         header = receiver.next(as_json=True)
 
-        return_value = None
         data = []
-
-        # header contains: "htype", "shape", "type", "frame", "endianess", "source", "encoding", "tags"
-
-        # Receiving data
         while receiver.has_more():
-            raw_data = receiver.next()
-            if raw_data:
-                data.append(get_image(raw_data, header['type'], header['shape']))
-            else:
-                data.append(None)
+            segment = receiver.next() or None
+            if segment:
+                segment = get_array(segment, header["type"], header["shape"])
+            data.append(segment)
 
+        res = None #TODO: this is inconsistent -- should it always be a dict?
         if header or data:
-            return_value = {'header': header,
-                            'data': data}
+            res = {
+                "header": header,
+                "data": data
+            }
 
-        return return_value
+        return res
+
 
     @staticmethod
     def send(message, send, block=True):
         send(json.dumps(message["header"]).encode(), send_more=True, block=True)
 
-        # Get the number of data segments.
-        number_of_segments = len(message["data"])
+        data = message["data"]
+        last_index = len(data) - 1
 
-        # Forward all data segments available.
-        for segment_index in range(number_of_segments):
-            data_segment = message["data"][segment_index]
-            more_blocks_to_send = segment_index + 1 != number_of_segments
-            # Get the bytes for the data if the data is not already in bytes.
-            if not isinstance(data_segment, bytes):
-                data_segment = data_segment.tobytes()
+        for index, segment in enumerate(data):
+            if not isinstance(segment, bytes):
+                segment = segment.tobytes()
 
-            send(data_segment, block=block, send_more=more_blocks_to_send)
+            send_more = index < last_index
+            send(segment, block=block, send_more=send_more)
 
 
-def get_image(raw_data, dtype, shape):
+
+def get_array(raw_data, dtype, shape):
     return numpy.frombuffer(raw_data, dtype=dtype).reshape(shape)
+
+
+

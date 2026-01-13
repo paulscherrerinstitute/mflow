@@ -1,20 +1,16 @@
-import threading
+import json
+import logging
+import time
 import unittest
 from itertools import groupby
-
-import mflow
-import mflow.handlers.array_1_0
-
-import time
-import json
+from multiprocessing import Process, Queue
 
 import numpy as np
 
-from multiprocessing import Process, Queue
+import mflow
+import mflow.handlers.array_1_0
+from mflow.utils import ConnectionCountMonitor
 
-import logging
-
-from mflow.tools import ConnectionCountMonitor
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.DEBUG)
@@ -29,13 +25,13 @@ def sender(address, n, q, block=True, copy=True):
     total_size = 0
     while i < n:
         try:
-            header = {'htype': 'array-1.0', 'type': 'int32', 'shape': [10, ], 'frame': i}
-            stream.send(json.dumps(header).encode('utf-8'), send_more=True, block=block)
+            header = {"htype": "array-1.0", "type": "int32", "shape": [10, ], "frame": i}
+            stream.send(json.dumps(header).encode("utf-8"), send_more=True, block=block)
             stream.send(data.tobytes(), block=block)
             i += 1
             total_size += data_size
-            total_size += len(json.dumps(header).encode('utf-8'))
-            q.put({'bytes_sent': data_size, 'total_sent': total_size})
+            total_size += len(json.dumps(header).encode("utf-8"))
+            q.put({"bytes_sent": data_size, "total_sent": total_size})
 
             # Send out every 10ms
             time.sleep(0.01)
@@ -44,7 +40,6 @@ def sender(address, n, q, block=True, copy=True):
             break
 
     stream.disconnect()
-    return
 
 
 def receiver(address, n, q, block=True, copy=True):
@@ -60,15 +55,14 @@ def receiver(address, n, q, block=True, copy=True):
                            "stat": message.statistics.messages_received, "counter": i, })
         #time.sleep(0.1)
     stream.disconnect()
-    return
+
 
 
 class BaseTests(unittest.TestCase):
+
     def setUp(self):
         self.address = "tcp://127.0.0.1:4001"
 
-    def tearDown(self):
-        pass
 
     def test_push_pull_recv_noblock(self):
         n = 10
@@ -95,9 +89,10 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
+
 
     def test_push_pull_recv_nocopy(self):
         n = 10
@@ -124,9 +119,10 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
+
 
     def test_push_pull_recv(self):
         n = 10
@@ -153,9 +149,10 @@ class BaseTests(unittest.TestCase):
             data = q.get()
             total_size = data["total_sent"]
 
-        self.assertEqual(n, i, 'Received too few messages')
-        self.assertEqual(n, stat, 'Stats reports wrong number messages received')
-        self.assertEqual(total_size, total_recv, 'Stats reports wrong number messages received about size')
+        self.assertEqual(n, i, "Received too few messages")
+        self.assertEqual(n, stat, "Stats reports wrong number messages received")
+        self.assertEqual(total_size, total_recv, "Stats reports wrong number messages received about size")
+
 
     def test_socket_monitor_sender(self):
         socket_address = "tcp://127.0.0.1:9999"
@@ -204,6 +201,7 @@ class BaseTests(unittest.TestCase):
         finally:
             sending_stream.disconnect()
 
+
     def test_socket_monitor_dynamic(self):
         socket_address = "tcp://127.0.0.1:9999"
         n_connected_clients = []
@@ -249,9 +247,11 @@ class BaseTests(unittest.TestCase):
 
             # Check overall client number report.
             self.assertEqual(n_connected_clients, [0, 1, 0, -1], "Wrong number of clients reported.")
+
         finally:
-            # sending_stream.disconnect()
-            pass
+            receiving_stream_3.disconnect()
+            sending_stream.disconnect()
+
 
     def test_no_client_monitor(self):
         socket_address = "tcp://127.0.0.1:9999"
@@ -289,25 +289,31 @@ class BaseTests(unittest.TestCase):
 
         server.disconnect()
 
-    def test_send_timeout(self):
 
+    def test_send_timeout(self):
         send_timeout = 100
 
         def test_timeout():
-            socket_address = "tcp://127.0.0.1:9999"
-            server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
-                                   send_timeout=send_timeout)
+            try:
+                socket_address = "tcp://127.0.0.1:9999"
+                server = mflow.connect(address=socket_address, conn_type=mflow.BIND, mode=mflow.PUSH,
+                                    send_timeout=send_timeout)
 
-            server.send(message={"valid": True}, block=True, as_json=True)
+                server.send(message={"valid": True}, block=True, as_json=True)
+            except Exception:
+                server.disconnect()
 
         # Run it in a separate process, so we can terminate it if needed.
         process = Process(target=test_timeout)
         process.start()
 
         # Lets wait a bit more.
-        time.sleep(send_timeout/1000 + 0.5)
+        time.sleep(send_timeout / 1000 + 0.5)
 
         is_process_alive = process.is_alive()
         process.terminate()
 
         self.assertFalse(is_process_alive, "Process should die automatically.")
+
+
+

@@ -1,68 +1,65 @@
-from datetime import time
-from time import sleep
+import logging
 
 import zmq
 
-from mflow.handlers import raw_1_0
-from mflow.handlers import dseries_end_1_0
-from mflow.handlers import dimage_1_0
-from mflow.handlers import array_1_0
-from mflow.handlers import dheader_1_0
-from mflow.tools import SocketEventListener, ConnectionCountMonitor, no_clients_timeout_notifier
+from .handlers import array_1_0, dheader_1_0, dimage_1_0, dseries_end_1_0, raw_1_0
+from .utils import ConnectionCountMonitor, SocketEventListener, no_clients_timeout_notifier
 
+#TODO: should the handlers (etc.) also use ujson if available? could add a shim and import from there...
 try:
     import ujson as json
-except:
+except ImportError:
     import json
-import logging
-import sys
 
-# setting up logging
+
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 #formatter = logging.Formatter("[%(name)s][%(levelname)s] %(message)s")
-formatter = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s')
+formatter = logging.Formatter("[%(asctime)s][%(name)s][%(levelname)s] %(message)s")
 
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-CONNECT = 'connect'
-BIND = 'bind'
+
+CONNECT = "connect"
+BIND = "bind"
 
 PUB = zmq.PUB
 SUB = zmq.SUB
 PUSH = zmq.PUSH
 PULL = zmq.PULL
 
-receive_handlers = {
-    "array-1.0": array_1_0.Handler.receive,
-    "dheader-1.0": dheader_1_0.Handler.receive,
-    "dimage-1.0": dimage_1_0.Handler.receive,
-    "dseries_end-1.0": dseries_end_1_0.Handler.receive,
-    "raw-1.0": raw_1_0.Handler.receive
+
+handler_modules = {
+    "array-1.0": array_1_0,
+    "dheader-1.0": dheader_1_0,
+    "dimage-1.0": dimage_1_0,
+    "dseries_end-1.0": dseries_end_1_0,
+    "raw-1.0": raw_1_0
 }
 
-send_handlers = {
-    "array-1.0": array_1_0.Handler.send,
-    "dheade-1.0": dheader_1_0.Handler.send,
-    "dimage-1.0": dimage_1_0.Handler.send,
-    "dseries_end-1.0": dseries_end_1_0.Handler.send,
-    "raw-1.0": raw_1_0.Handler.send
-}
+handlers = {k: getattr(v, "Handler") for k, v in handler_modules.items()}
+receive_handlers = {k: getattr(v, "receive") for k, v in handlers.items()}
+send_handlers = {k: getattr(v, "send") for k, v in handlers.items()}
 
 
-class Stream(object):
+class Stream:
 
     def __init__(self):
-
         self.context = None
+        self._context_is_owned = False
         self.socket = None
         self.address = None
+
+        # see connect(..., copy=True)
+        self.zmq_copy = True
+        self.zmq_track = False
 
         self.receiver = None
 
         self._socket_monitors = []
         self._socket_event_listener = SocketEventListener(self._socket_monitors)
+
 
     def connect(self, address, conn_type=CONNECT, mode=PULL, receive_timeout=None, queue_size=100, linger=1000,
                 context=None, copy=True, send_timeout=None):
@@ -77,7 +74,6 @@ class Stream(object):
         :param send_timeout:    Send timeout in milliseconds (-1 = infinite)
         :return:
         """
-
         if not context:
             self.context = zmq.Context()
             self._context_is_owned = True
@@ -86,33 +82,34 @@ class Stream(object):
             self._context_is_owned = False
         self.socket = self.context.socket(mode)
         if mode == zmq.SUB:
-            self.socket.setsockopt_string(zmq.SUBSCRIBE, '')
+            self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
         self.socket.setsockopt(zmq.LINGER, linger)
         self.socket.set_hwm(queue_size)
         try:
             if conn_type == CONNECT:
                 self.socket.connect(address)
-                logger.info("Connected to %s" % address)
+                logger.info("Connected to %s", address)
             else:
                 self.socket.bind(address)
-                logger.info("Bound to %s" % address)
+                logger.info("Bound to %s", address)
 
             # Start the socket event listener, if there are monitors registered.
             if self._socket_monitors:
                 self._socket_event_listener.start(self.socket)
 
-        except Exception:
-            logger.error("Full error: %s" % sys.exc_info()[1])
-            raise RuntimeError("Unable to connect/bind to %s" % address)
+        except Exception as e:
+            msg = "Unable to %s to %s" % (conn_type, address)
+            logger.exception(msg)
+            raise RuntimeError(msg) from e
 
         if receive_timeout:
             self.socket.RCVTIMEO = receive_timeout
-            logger.info("Receive timeout set: %f" % receive_timeout)
+            logger.info("Receive timeout set: %f", receive_timeout)
 
         if send_timeout:
             self.socket.SNDTIMEO = send_timeout
-            logger.info("Send timeout set: %f" % send_timeout)
+            logger.info("Send timeout set: %f", send_timeout)
 
         self.address = address
         self.zmq_copy = copy
@@ -121,6 +118,7 @@ class Stream(object):
         # If socket is used for receiving messages, create receive handler
         if mode == zmq.SUB or mode == zmq.PULL:
             self.receiver = ReceiveHandler(self.socket, copy=copy)
+
 
     def register_socket_monitor(self, monitor):
         """
@@ -134,6 +132,7 @@ class Stream(object):
         if not self._socket_event_listener.monitor_listening.is_set() and (self.socket and not self.socket.closed):
             self._socket_event_listener.start(self.socket)
 
+
     def remove_socket_monitor(self, callback_function):
         """
         Remove connection monitor from this socket.
@@ -146,8 +145,8 @@ class Stream(object):
         if not self._socket_monitors:
             self._socket_event_listener.stop()
 
-    def disconnect(self):
 
+    def disconnect(self):
         if self.socket.closed:
             logger.warning("Trying to close an already closed socket... ignore and return")
             return
@@ -164,9 +163,11 @@ class Stream(object):
                     self.context.term()
 
             logger.info("Disconnected")
-        except:
-            logger.debug(sys.exc_info()[1])
-            logger.info("Unable to disconnect properly")
+        except Exception:
+            msg = "Unable to disconnect properly"
+            logger.debug(msg, exc_info=True)
+            logger.info(msg)
+
 
     def receive(self, handler=None, block=True):
         """
@@ -175,7 +176,6 @@ class Stream(object):
         :param block:       Blocking receive call
         :return:            Map holding the data, timestamp, data and main header
         """
-
         message = None
         # Set blocking flag in receiver
         self.receiver.block = block
@@ -189,19 +189,18 @@ class Stream(object):
                 # not clear if this is needed
                 self.receiver.flush(receive_is_successful)
                 return message
-            except KeyboardInterrupt:
-                raise
-            except:
-                logger.exception('Unable to read header - skipping')
+            except Exception:
+                logger.exception("Unable to read header - skipping")
                 # Clear remaining sub-messages if exist
                 self.receiver.flush(receive_is_successful)
                 return message
 
             try:
                 handler = receive_handlers[htype]
-            except:
-                logger.debug(sys.exc_info()[1])
-                logger.warning('htype - ' + htype + ' -  not supported')
+            except Exception:
+                msg = "htype - %s - not supported" % htype
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
 
         try:
             data = handler(self.receiver)
@@ -209,22 +208,21 @@ class Stream(object):
             if data:
                 receive_is_successful = True
                 message = Message(self.receiver.statistics, data)
-        except KeyboardInterrupt:
-            raise
-        except:
-            logger.exception('Unable to decode message - skipping')
+        except Exception:
+            logger.exception("Unable to decode message - skipping")
 
         # Clear remaining sub-messages if exist
         self.receiver.flush(receive_is_successful)
 
         return message
 
+
     def receive_raw(self, block=True):
         message = self.receive(handler=receive_handlers["raw-1.0"], block=block)
         return message
 
-    def send(self, message, send_more=False, block=True, as_json=False):
 
+    def send(self, message, send_more=False, block=True, as_json=False):
         flags = 0
         if send_more:
             flags = zmq.SNDMORE
@@ -236,40 +234,42 @@ class Stream(object):
                 self.socket.send_json(message, flags)
             else:
                 self.socket.send(message, flags, copy=self.zmq_copy, track=self.zmq_track)
-        except zmq.Again as e:
+        except zmq.Again:
             if not block:
                 pass
             else:
-                raise e
-        except zmq.ZMQError as e:
-            logger.error(sys.exc_info()[1])
-            raise e
+                raise
+        except zmq.ZMQError:
+            logger.exception("Error while sending")
+            raise
+
 
     def forward(self, message, handler=None, block=True):
-
         if not handler:
             try:
                 # Dynamically select handler
                 htype = message["header"]["htype"]
-            except Exception as e:
-                logger.debug(sys.exc_info())
-                logger.warning('Unable to read header - skipping')
+            except Exception:
+                msg = "Unable to read header - skipping"
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
                 # Clear remaining sub-messages if exist
-                raise e
+                raise
 
             try:
                 handler = send_handlers[htype]
-            except:
-                logger.debug(sys.exc_info()[1])
-                logger.warning('htype - ' + htype + ' -  not supported')
+            except Exception:
+                msg = "htype - %s - not supported" % htype
+                logger.debug(msg, exc_info=True)
+                logger.warning(msg)
 
         try:
             handler(message, send=self.send, block=block)
-        except KeyboardInterrupt:
-            raise
-        except:
-            logger.debug(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
-            logger.warning('Unable to send message - skipping')
+        except Exception:
+            msg = "Unable to send message - skipping"
+            logger.debug(msg, exc_info=True)
+            logger.warning(msg)
+
 
 
 class ReceiveHandler:
@@ -285,13 +285,16 @@ class ReceiveHandler:
         self.zmq_copy = copy
         self.zmq_track = not copy
 
+
     def header(self):
         flags = 0 if self.block else zmq.NOBLOCK
         self.raw_header = self.socket.recv(flags=flags)
         return json.loads(self.raw_header.decode("utf-8"))
 
+
     def has_more(self):
         return self.socket.getsockopt(zmq.RCVMORE)
+
 
     def next(self, as_json=False):
         try:
@@ -319,13 +322,14 @@ class ReceiveHandler:
         except zmq.ZMQError:
             return None
 
+
     def flush(self, success=True):
         flags = 0 if self.block else zmq.NOBLOCK
         # Clear remaining sub-messages
         while self.has_more():
             try:
                 self.socket.recv(flags=flags, copy=self.zmq_copy, track=self.zmq_track)
-                logger.info('Skipping sub-message')
+                logger.info("Skipping sub-message")
             except zmq.ZMQError:
                 pass
 
@@ -336,17 +340,22 @@ class ReceiveHandler:
             self.statistics.messages_received += 1
 
 
+
 class Statistics:
+
     def __init__(self):
         self.bytes_received = 0
         self.total_bytes_received = 0
         self.messages_received = 0
 
 
+
 class Message:
+
     def __init__(self, statistics, data):
         self.statistics = statistics
         self.data = data
+
 
 
 def connect(address, conn_type="connect", mode=zmq.PULL, queue_size=100, receive_timeout=None, linger=1000,
@@ -368,17 +377,22 @@ def disconnect(stream):
 
 
 def main():
-    # Configuration logging
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(name)s - %(message)s')
+#    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(name)s - %(message)s")
 
-    stream = connect('tcp://sf-lc:9999')
+    stream = connect("tcp://sf-lc:9999")
     while True:
         message = stream.receive()
-        print('Messages received: %d' % message.statistics.messages_received)
+        print("Messages received: %d" % message.statistics.messages_received)
 
     stream.disconnect()
 
 
-if __name__ == '__main__':
+
+
+
+if __name__ == "__main__":
     main()
+
+
+

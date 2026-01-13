@@ -66,22 +66,18 @@ Register multiple custom (htype) handlers:
 
 ```python
 def receive_function(receiver):
-
       header = receiver.next(as_json=True)
-      return_value = {}
+
       data = []
-
-      # Receiving data
       while receiver.has_more():
-          raw_data = receiver.next()
-          if raw_data:
-              data.append(raw_data)
-          else:
-              data.append(None)
+          segment = receiver.next() or None
+          data.append(segment)
 
-      return_value['header'] = header
-      return_value['data'] = data
-      return return_value
+      res = {
+          "header": header,
+          "data": data
+      }
+      return res
 
 
 my_handlers = dict()
@@ -124,8 +120,8 @@ import mflow
 stream_one = mflow.connect('tcp://source1:7777')
 stream_two = mflow.connect('tcp://source2:7779')
 
-import mflow.tools
-stream = mflow.tools.Merge(stream_one, stream_two)
+import mflow.utils
+stream = mflow.utils.Merge(stream_one, stream_two)
 
 message = stream.receive()
 

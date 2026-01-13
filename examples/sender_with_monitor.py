@@ -1,29 +1,23 @@
-import sys
-import os
+import logging
 import time
 
-try:
-    import mflow
-except:
-    sys.path.append(os.environ["PWD"] + "/../")
-    import mflow
-
-from mflow.tools import ConnectionCountMonitor
-
-import logging
 import numpy as np
+
+import mflow
+from mflow.utils import ConnectionCountMonitor
+
 
 logger = logging.getLogger("mflow.mflow")
 logger.setLevel(logging.ERROR)
 
 address = "tcp://127.0.0.1:40000"
 
+stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1)
 
 # Declare a callback function to call then the number of clients changes.
 def print_number_of_connections(n_connections):
     print("Current number of clients: %d." % n_connections)
 
-stream = mflow.connect(address, conn_type=mflow.BIND, mode=mflow.PUSH, receive_timeout=1, queue_size=1)
 # Register the callback function to the ConnectionCountMonitor.
 stream.register_socket_monitor(ConnectionCountMonitor(print_number_of_connections))
 
@@ -43,3 +37,6 @@ for i in range(16):
         break
 
 stream.disconnect()
+
+
+

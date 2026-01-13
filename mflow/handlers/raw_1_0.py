@@ -6,26 +6,29 @@ class Handler:
     @staticmethod
     def receive(receiver):
         header = receiver.next(as_json=True)
-        return_value = None
+
         data = []
-
-        # Receiving data
         while receiver.has_more():
-            raw_data = receiver.next()
-            if raw_data:
-                data.append(raw_data)
-            else:
-                data.append(None)
+            segment = receiver.next() or None
+            data.append(segment)
 
+        res = None #TODO: this is inconsistent -- should it always be a dict?
         if header or data:
-            return_value = {'header': header,
-                            'data': data}
+            res = {
+                "header": header,
+                "data": data
+            }
 
-        return return_value
+        return res
+
 
     @staticmethod
     def send(message, send, block=True):
         send(json.dumps(message["header"]).encode(), send_more=True, block=True)
 
-        for data in message["data"]:
-            send(data, block=block)
+        for segment in message["data"]:
+            #TODO: why does this not need send_more=True up until the last segment?
+            send(segment, block=block)
+
+
+

@@ -1,28 +1,35 @@
+{% set data = load_setup_py_data() %}
+
 package:
     name: mflow
-    version: 0.2.0
+    version: {{ data["version"] }}
+
+about:
+   home: {{ data["url"] }}
+   summary: {{ data["description"] }}
+
 source:
     path: ..
-
-requirements:
-    build:
-        - python
-        - setuptools
-        - pip
-    run:
-        - python
-        - pyzmq
 
 build:
   noarch: python
   number: 2
   script: python -m pip install --no-deps --ignore-installed .
   entry_points:
-    - m_dump = mflow.utils.dump:main
-    - m_replay = mflow.utils.replay:main
-    - m_stats = mflow.utils.stats:main
-    - m_split = mflow.utils.split:main
-    - m_generate = mflow.utils.generate:main
+    - m_dump = mflow.cli.dump:main
+    - m_replay = mflow.cli.replay:main
+    - m_stats = mflow.cli.stats:main
+    - m_split = mflow.cli.split:main
+    - m_generate = mflow.cli.generate:main
+
+requirements:
+    build:
+        - python >=3.1
+        - setuptools
+        - pip
+    run:
+        - python >=3.1
+        - pyzmq
 
 test:
   requires:
@@ -30,6 +37,3 @@ test:
 #   source_files:
 #     - mflow/tests/
 
-about:
-    home: https://github.com/datastreaming/mflow
-    summary: "mflow library."
