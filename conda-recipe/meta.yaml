@@ -31,9 +31,3 @@ requirements:
         - python >=3.1
         - pyzmq
 
-test:
-  requires:
-    - numpy
-#   source_files:
-#     - mflow/tests/
-
